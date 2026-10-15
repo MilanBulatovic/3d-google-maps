@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --background: #121612;
+  --foreground: #1c1917;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.google-map-3d {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.map-panel-in {
+  animation: map-panel-in 220ms ease-out;
+}
+
+@keyframes map-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gallery-overlay {
+  animation: gallery-fade 280ms ease;
+}
+
+.gallery-stage {
+  animation: gallery-rise 320ms ease;
+}
+
+.gallery-overlay-out {
+  animation: gallery-fade 220ms ease reverse forwards;
+}
+
+.gallery-overlay-out .gallery-stage {
+  animation: gallery-rise 220ms ease reverse forwards;
+}
+
+@keyframes gallery-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gallery-rise {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-panel-in,
+  .gallery-overlay,
+  .gallery-stage,
+  .gallery-overlay-out,
+  .gallery-overlay-out .gallery-stage {
+    animation: none;
+  }
+}
