@@ -1,7 +1,7 @@
 "use client";
 
-import { Mountain, SlidersHorizontal } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { Mountain, Search, SlidersHorizontal, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LocationInfoCard } from "@/features/map/components/location-info-card";
@@ -27,6 +27,24 @@ import type { Property } from "@/features/property-gallery/types";
 import { applySelection } from "@/features/map/utils/selection";
 import { getGoogleMapsApiKey } from "@/lib/env";
 
+function useCompactHeader() {
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const media = window.matchMedia("(max-width: 639px)");
+    const update = () => setCompact(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return compact;
+}
+
 const MISSING_KEY_MESSAGE =
   "Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local, then restart the dev server. Use a browser key restricted to this site and to the Maps JavaScript API.";
 
@@ -39,6 +57,8 @@ export function InteractiveMap() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<SupportedMapMode>("SATELLITE");
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const compactHeader = useCompactHeader();
   const [detailsLift, setDetailsLift] = useState<"none" | "peek" | "sheet">(
     "none",
   );
@@ -283,31 +303,66 @@ export function InteractiveMap() {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="icon"
-                className="sm:order-last"
-                aria-label="Map options"
-                aria-expanded={optionsOpen}
-                aria-controls="map-controls"
-                onClick={() => setOptionsOpen((open) => !open)}
-              >
-                <SlidersHorizontal className="size-4" aria-hidden="true" />
-              </Button>
+              <div className="flex items-center gap-2 sm:contents">
+                <Button
+                  variant="icon"
+                  className="sm:hidden"
+                  aria-label={searchOpen ? "Zatvori pretragu" : "Otvori pretragu"}
+                  aria-expanded={searchOpen}
+                  aria-controls="map-search"
+                  onClick={() => setSearchOpen((open) => !open)}
+                >
+                  {searchOpen ? (
+                    <X className="size-4" aria-hidden="true" />
+                  ) : (
+                    <Search className="size-4" aria-hidden="true" />
+                  )}
+                </Button>
+                <Button
+                  variant="icon"
+                  className="sm:order-last"
+                  aria-label="Map options"
+                  aria-expanded={optionsOpen}
+                  aria-controls="map-controls"
+                  onClick={() => setOptionsOpen((open) => !open)}
+                >
+                  <SlidersHorizontal className="size-4" aria-hidden="true" />
+                </Button>
+              </div>
             </div>
-            <MapSearch
-              query={query}
-              onQueryChange={setQuery}
-              category={category}
-              onCategoryChange={setCategory}
-              results={search.results}
-              selectedId={worldSelection?.id ?? selectedId}
-              onSelect={worldSearch ? selectWorldPlace : selectMontenegroPlace}
-              worldSearch={worldSearch}
-              montenegroSearch={!worldSearch}
-              onWorldSearchChange={changeWorldSearch}
-              worldStatus={search.status}
-              worldMessage={search.message}
-            />
+            <div
+              id="map-search"
+              className="map-search-slot sm:contents"
+              data-open={searchOpen ? "true" : "false"}
+              inert={compactHeader && !searchOpen ? true : undefined}
+            >
+              <div className="map-search-panel sm:contents">
+                <MapSearch
+                  query={query}
+                  onQueryChange={setQuery}
+                  category={category}
+                  onCategoryChange={setCategory}
+                  results={search.results}
+                  selectedId={worldSelection?.id ?? selectedId}
+                  onSelect={(id) => {
+                    if (compactHeader) {
+                      setSearchOpen(false);
+                    }
+                    if (worldSearch) {
+                      selectWorldPlace(id);
+                      return;
+                    }
+                    selectMontenegroPlace(id);
+                  }}
+                  worldSearch={worldSearch}
+                  montenegroSearch={!worldSearch}
+                  onWorldSearchChange={changeWorldSearch}
+                  worldStatus={search.status}
+                  worldMessage={search.message}
+                  requestFocus={searchOpen}
+                />
+              </div>
+            </div>
           </div>
         </header>
 

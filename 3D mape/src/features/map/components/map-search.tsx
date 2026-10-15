@@ -26,6 +26,7 @@ type MapSearchProps = {
   onWorldSearchChange?: (enabled: boolean) => void;
   worldStatus?: "idle" | "loading" | "ready" | "empty" | "error";
   worldMessage?: string | null;
+  requestFocus?: boolean;
 };
 
 const SUGGESTION_LIMIT = 8;
@@ -61,11 +62,14 @@ export function MapSearch({
   onWorldSearchChange,
   worldStatus = "idle",
   worldMessage = null,
+  requestFocus = false,
 }: MapSearchProps) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [indexFor, setIndexFor] = useState("");
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const hadFocusRequest = useRef(false);
   const listId = useId();
   const suggestions = results.slice(0, SUGGESTION_LIMIT);
   const resultKey = suggestions.map((location) => location.id).join("\0");
@@ -98,6 +102,19 @@ export function MapSearch({
     optionRefs.current[activeIndex]?.scrollIntoView?.({ block: "nearest" });
   }, [activeIndex]);
 
+  useEffect(() => {
+    if (requestFocus) {
+      hadFocusRequest.current = true;
+      const handle = window.setTimeout(() => inputRef.current?.focus(), 180);
+      return () => window.clearTimeout(handle);
+    }
+
+    if (hadFocusRequest.current) {
+      inputRef.current?.blur();
+      hadFocusRequest.current = false;
+    }
+  }, [requestFocus]);
+
   function choose(location: MapLocation) {
     onQueryChange(location.name);
     onSelect(location.id);
@@ -112,6 +129,7 @@ export function MapSearch({
           aria-hidden="true"
         />
         <Input
+          ref={inputRef}
           value={query}
           onChange={(event) => {
             onQueryChange(event.target.value);
