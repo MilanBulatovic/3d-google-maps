@@ -107,7 +107,8 @@ export function ExampleScene({
 
     scene.add(createGround());
     scene.add(createScenery());
-    scene.add(createBuilding());
+    const building = createBuilding();
+    scene.add(building.group);
 
     const markers: Marker[] = [];
     const hitTargets: THREE.Object3D[] = [];
@@ -287,6 +288,21 @@ export function ExampleScene({
           const cycle = (elapsed * 0.65 + index * 0.5) % 1;
           ring.scale.setScalar(1 + cycle * 2.6);
           material.opacity = (active ? 0.95 : 0.75) * (1 - cycle);
+        });
+      }
+
+      const focusId = selectedIdRef.current ?? hoveredIdRef.current;
+      for (const story of building.stories) {
+        const goal = focusId && story.id !== focusId ? 1 : 0;
+        story.amount = reduceMotion
+          ? goal
+          : story.amount + (goal - story.amount) * 0.16;
+        const shade = story.amount * 0.78;
+        story.materials.forEach((material, index) => {
+          material.color.copy(story.baseColors[index]).lerp(DIM_COLOR, shade);
+        });
+        story.lights.forEach((light, index) => {
+          light.intensity = story.baseIntensities[index] * (1 - story.amount * 0.88);
         });
       }
 
@@ -649,8 +665,20 @@ function createLeafTree(
   return tree;
 }
 
+const DIM_COLOR = new THREE.Color("#101412");
+
+type StoryFocus = {
+  id: FloorHotspot["id"];
+  materials: Array<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>;
+  lights: THREE.PointLight[];
+  baseColors: THREE.Color[];
+  baseIntensities: number[];
+  amount: number;
+};
+
 function createBuilding() {
-  const building = new THREE.Group();
+  const group = new THREE.Group();
+  const stories: StoryFocus[] = [];
   const walls = new THREE.MeshStandardMaterial({
     color: "#efe6d6",
     roughness: 0.78,
@@ -701,36 +729,81 @@ function createBuilding() {
   const rugColors = ["#8f4d3c", "#3f6d62", "#4c6288"];
 
   for (let level = 0; level < 3; level += 1) {
-    building.add(
-      createStory(level, {
-        walls,
-        floorWood,
-        wood,
-        glass,
-        concrete,
-        rail,
-        tableTop,
-        sofaFabric,
-        rug: new THREE.MeshStandardMaterial({
-          color: rugColors[level],
-          roughness: 0.9,
-        }),
+    const story = createStory(level, {
+      walls: walls.clone(),
+      floorWood: floorWood.clone(),
+      wood: wood.clone(),
+      glass: glass.clone(),
+      concrete: concrete.clone(),
+      rail: rail.clone(),
+      tableTop: tableTop.clone(),
+      sofaFabric: sofaFabric.clone(),
+      rug: new THREE.MeshStandardMaterial({
+        color: rugColors[level],
+        roughness: 0.9,
       }),
-    );
+    });
+    group.add(story);
+    stories.push(collectStoryFocus(story, FLOOR_HOTSPOTS[level].id));
   }
+
+  walls.dispose();
+  floorWood.dispose();
+  wood.dispose();
+  glass.dispose();
+  concrete.dispose();
+  rail.dispose();
+  tableTop.dispose();
+  sofaFabric.dispose();
 
   const roof = new THREE.Mesh(new THREE.BoxGeometry(3.05, 0.12, 2.35), roofMaterial);
   roof.position.set(0, FLOOR_HEIGHT * 3 + 0.06, 0.02);
   roof.castShadow = true;
   roof.receiveShadow = true;
-  building.add(roof);
+  group.add(roof);
 
   const parapet = new THREE.Mesh(new THREE.BoxGeometry(3.05, 0.22, 0.08), trim);
   parapet.position.set(0, FLOOR_HEIGHT * 3 + 0.22, FACADE_Z + 0.02);
   parapet.castShadow = true;
-  building.add(parapet);
+  group.add(parapet);
 
-  return building;
+  return { group, stories };
+}
+
+function collectStoryFocus(
+  story: THREE.Group,
+  id: FloorHotspot["id"],
+): StoryFocus {
+  const materials: StoryFocus["materials"] = [];
+  const lights: THREE.PointLight[] = [];
+  story.traverse((object) => {
+    if (object instanceof THREE.PointLight) {
+      lights.push(object);
+      return;
+    }
+    if (!(object instanceof THREE.Mesh)) return;
+    const list = Array.isArray(object.material)
+      ? object.material
+      : [object.material];
+    for (const material of list) {
+      if (
+        (material instanceof THREE.MeshStandardMaterial ||
+          material instanceof THREE.MeshBasicMaterial) &&
+        !materials.includes(material)
+      ) {
+        materials.push(material);
+      }
+    }
+  });
+
+  return {
+    id,
+    materials,
+    lights,
+    baseColors: materials.map((material) => material.color.clone()),
+    baseIntensities: lights.map((light) => light.intensity),
+    amount: 0,
+  };
 }
 
 type StoryMaterials = {
