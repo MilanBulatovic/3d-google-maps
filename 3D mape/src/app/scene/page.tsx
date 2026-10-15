@@ -4,9 +4,9 @@ import Link from "next/link";
 import { SceneView } from "@/features/scene/components/scene-view";
 
 export const metadata: Metadata = {
-  title: "House scene",
+  title: "Building scene",
   description:
-    "A Three.js house with pulsing points you can click for details.",
+    "A Three.js apartment building. Hover a floor, then click to fly into that apartment.",
 };
 
 export default function ScenePage() {
@@ -14,16 +14,16 @@ export default function ScenePage() {
     <main className="relative h-dvh bg-[#121612]">
       <SceneView />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-4 p-4 sm:p-6">
-        <div className="max-w-sm text-[#f4efe4]">
+        <div className="max-w-sm text-[#f4efe4] drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)]">
           <p className="text-xs font-medium tracking-[0.16em] text-[#c8d4c4] uppercase">
             Three.js
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            House scene
+            Building scene
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[#d7e0d4]">
-            Drag to look around and scroll to zoom. Click a pulsing point on
-            the door, window, or roof.
+            Hover a pulsing point to read the floor. Click it and the camera
+            flies into that apartment.
           </p>
         </div>
         <Link

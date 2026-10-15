@@ -117,6 +117,81 @@ body {
   }
 }
 
+.pin-callout {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.pin-callout[data-placed="true"] {
+  visibility: visible;
+}
+
+.pin-callout-stem {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  width: 2px;
+  height: 72px;
+  transform: translateX(-50%);
+}
+
+.pin-callout-line {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #ff5a3c;
+  transform: scaleY(0);
+  transform-origin: bottom center;
+  transition: transform 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pin-callout[data-placed="true"] .pin-callout-line {
+  transform: scaleY(1);
+}
+
+.pin-callout-elbow {
+  position: absolute;
+  top: 0;
+  left: min(0px, var(--callout-shift, 0px));
+  width: max(var(--callout-shift, 0px), calc(var(--callout-shift, 0px) * -1));
+  height: 2px;
+  background: #ff5a3c;
+  transform: scaleX(0);
+  transform-origin: var(--elbow-origin, left center);
+  transition: transform 220ms ease 300ms;
+}
+
+.pin-callout[data-placed="true"] .pin-callout-elbow {
+  transform: scaleX(1);
+}
+
+.pin-callout-card {
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  width: min(16rem, calc(100vw - 2rem));
+  padding: 0.85rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 1rem;
+  background: rgb(28 36 32 / 0.94);
+  color: #f4efe4;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.28);
+  opacity: 0;
+  transform: translateX(calc(-50% + var(--callout-shift, 0px))) translateY(8px);
+  transition:
+    opacity 260ms ease 280ms,
+    transform 260ms ease 280ms;
+}
+
+.pin-callout[data-placed="true"] .pin-callout-card {
+  opacity: 1;
+  transform: translateX(calc(-50% + var(--callout-shift, 0px))) translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .map-panel-in,
   .gallery-overlay,
@@ -131,5 +206,24 @@ body {
     transition: none;
     filter: none;
     transform: none;
+  }
+
+  .pin-callout-line,
+  .pin-callout-card {
+    transition: none;
+  }
+
+  .pin-callout[data-placed="true"] .pin-callout-line,
+  .pin-callout[data-placed="true"] .pin-callout-elbow {
+    transform: scaleY(1);
+  }
+
+  .pin-callout[data-placed="true"] .pin-callout-elbow {
+    transform: scaleX(1);
+  }
+
+  .pin-callout[data-placed="true"] .pin-callout-card {
+    opacity: 1;
+    transform: translateX(calc(-50% + var(--callout-shift, 0px)));
   }
 }
