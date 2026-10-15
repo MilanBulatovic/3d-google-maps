@@ -116,7 +116,7 @@ export async function GET() {
     {
       headers: {
         "Cache-Control":
-          source === "live" ? "private, max-age=120" : "private, max-age=30",
+          source === "live" ? "private, no-cache" : "private, max-age=30",
       },
     },
   );

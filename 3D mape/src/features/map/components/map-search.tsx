@@ -3,15 +3,20 @@
 import { Search } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { Input /*, Select */ } from "@/components/ui/input";
+import { Input, Select } from "@/components/ui/input";
 import type { MapLocation } from "@/features/map/types/map-location";
 import { GOOGLE_MAPS_URL } from "@/features/map/utils/attribution";
+
+const CATEGORY_FILTERS = [
+  { value: "Igraonice", label: "Igraonice" },
+  { value: "Nekretnine", label: "Nekretnine" },
+  { value: "Hitne službe", label: "Hitne službe" },
+] as const;
 
 type MapSearchProps = {
   query: string;
   onQueryChange: (value: string) => void;
   category: string;
-  categories: readonly string[];
   onCategoryChange: (value: string) => void;
   results: readonly MapLocation[];
   selectedId: string | null;
@@ -46,9 +51,8 @@ function highlightMatch(name: string, query: string) {
 export function MapSearch({
   query,
   onQueryChange,
-  // category,
-  // categories,
-  // onCategoryChange,
+  category,
+  onCategoryChange,
   results,
   selectedId,
   onSelect,
@@ -253,21 +257,18 @@ export function MapSearch({
           Svijet
         </button>
       </div>
-      {/* Category filter hidden for now.
       <Select
         value={category}
         onChange={(event) => onCategoryChange(event.target.value)}
-        aria-label="Filter by category"
+        aria-label="Kategorija"
         className="sm:w-44"
       >
-        <option value="all">All categories</option>
-        {categories.map((item) => (
-          <option key={item} value={item}>
-            {item}
+        {CATEGORY_FILTERS.map((item) => (
+          <option key={item.value} value={item.value}>
+            {item.label}
           </option>
         ))}
       </Select>
-      */}
     </div>
   );
 }

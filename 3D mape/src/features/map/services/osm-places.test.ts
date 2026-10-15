@@ -65,6 +65,67 @@ describe("placesFromOverpass", () => {
             leisure: "playground",
           },
         },
+        {
+          type: "node",
+          id: 16,
+          lat: 42.44,
+          lon: 19.26,
+          tags: {
+            name: "Agencija Morača",
+            office: "estate_agent",
+          },
+        },
+        {
+          type: "node",
+          id: 17,
+          lat: 42.45,
+          lon: 19.27,
+          tags: {
+            name: "Stari oglas",
+            shop: "estate_agent",
+          },
+        },
+        {
+          type: "node",
+          id: 18,
+          lat: 42.44,
+          lon: 19.26,
+          tags: { name: "CB Podgorica", amenity: "police" },
+        },
+        {
+          type: "node",
+          id: 19,
+          lat: 42.44,
+          lon: 19.25,
+          tags: { name: "Vatrogasci Podgorica", amenity: "fire_station" },
+        },
+        {
+          type: "node",
+          id: 20,
+          lat: 42.43,
+          lon: 19.24,
+          tags: { name: "ZHMP", emergency: "ambulance_station" },
+        },
+        {
+          type: "way",
+          id: 21,
+          center: { lat: 42.43, lon: 19.25 },
+          tags: { name: "Klinički centar", healthcare: "hospital" },
+        },
+        {
+          type: "node",
+          id: 22,
+          lat: 42.9,
+          lon: 19.4,
+          tags: { name: "GSS Durmitor", emergency: "mountain_rescue" },
+        },
+        {
+          type: "node",
+          id: 23,
+          lat: 42.069,
+          lon: 19.512,
+          tags: { name: "Policia Shkodër", amenity: "police" },
+        },
       ],
     });
 
@@ -74,6 +135,13 @@ describe("placesFromOverpass", () => {
       "osm-node-13",
       "osm-node-14",
       "osm-node-15",
+      "osm-node-16",
+      "osm-node-17",
+      "osm-node-18",
+      "osm-node-19",
+      "osm-node-20",
+      "osm-way-21",
+      "osm-node-22",
     ]);
     expect(places[0]).toMatchObject({
       category: "Vrtić",
@@ -90,6 +158,49 @@ describe("placesFromOverpass", () => {
       description: "Igralište Njegošev park je igralište u Crnoj Gori.",
     });
     expect(places[4]?.category).toBe("Rođendaonica");
+    expect(places[5]).toMatchObject({
+      category: "Nekretnine",
+      description: "Agencija Morača je agencija za nekretnine u Crnoj Gori.",
+    });
+    expect(places[6]?.category).toBe("Nekretnine");
+    expect(places.slice(7).map((place) => place.category)).toEqual([
+      "Policija",
+      "Vatrogasci",
+      "Hitna pomoć",
+      "Bolnica",
+      "Gorska služba",
+    ]);
+    expect(places[7]?.description).toBe("CB Podgorica je policijska stanica u Crnoj Gori.");
+  });
+
+  it("drops Sukobin and Katerkol", () => {
+    const places = placesFromOverpass({
+      elements: [
+        {
+          type: "node",
+          id: 30,
+          lat: 42.0164,
+          lon: 19.3705,
+          tags: { name: "Granični prelaz Sukobin", amenity: "police" },
+        },
+        {
+          type: "node",
+          id: 31,
+          lat: 42.0018,
+          lon: 19.2993,
+          tags: { name: "Amblulanta Katerkoll", amenity: "hospital" },
+        },
+        {
+          type: "node",
+          id: 32,
+          lat: 41.929,
+          lon: 19.224,
+          tags: { name: "Policija Ulcinj", amenity: "police" },
+        },
+      ],
+    });
+
+    expect(places.map((place) => place.name)).toEqual(["Policija Ulcinj"]);
   });
 
   it("returns nothing for a payload without elements", () => {

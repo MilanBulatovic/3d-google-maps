@@ -15,6 +15,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   Rođendaonica: "#be185d",
   "Dječija radionica": "#6d28d9",
   Igralište: "#3f6212",
+  Nekretnine: "#1d4ed8",
+  Policija: "#1e3a8a",
+  Vatrogasci: "#b91c1c",
+  "Hitna pomoć": "#be123c",
+  Bolnica: "#0e7490",
+  "Gorska služba": "#0369a1",
+  "Spasilačka služba": "#155e75",
   Residence: "#92400e",
 };
 

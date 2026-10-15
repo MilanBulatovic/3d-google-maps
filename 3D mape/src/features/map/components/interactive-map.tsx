@@ -1,7 +1,7 @@
 "use client";
 
 import { Mountain, SlidersHorizontal } from "lucide-react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LocationInfoCard } from "@/features/map/components/location-info-card";
@@ -33,12 +33,21 @@ const MISSING_KEY_MESSAGE =
 export function InteractiveMap() {
   const apiKey = getGoogleMapsApiKey();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState("Igraonice");
   const [worldSearch, setWorldSearch] = useState(WORLD_SEARCH);
   const [worldSelection, setWorldSelection] = useState<MapLocation | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<SupportedMapMode>("SATELLITE");
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [detailsLift, setDetailsLift] = useState<"none" | "peek" | "sheet">(
+    "none",
+  );
+  const handlePresentationChange = useCallback(
+    (presentation: "peek" | "sheet") => {
+      setDetailsLift(presentation);
+    },
+    [],
+  );
   const [attempt, setAttempt] = useState(0);
   const [phase, setPhase] = useState<"loading" | "ready" | "error">(
     apiKey ? "loading" : "error",
@@ -53,7 +62,7 @@ export function InteractiveMap() {
   const controllerRef = useRef<MapCameraController | null>(null);
   const galleryCameraRef = useRef<CameraTarget | null>(null);
   const pendingLocationRef = useRef<MapLocation | null>(null);
-  const { locations, categories, placesSource } = useMapLocations("", category);
+  const { filtered: locations, placesSource } = useMapLocations("", category);
   const montenegro = useMontenegroSearch(query, !worldSearch, apiKey);
   const world = useWorldSearch(query, worldSearch, apiKey);
   const search = worldSearch ? world : montenegro;
@@ -289,7 +298,6 @@ export function InteractiveMap() {
               query={query}
               onQueryChange={setQuery}
               category={category}
-              categories={categories}
               onCategoryChange={setCategory}
               results={search.results}
               selectedId={worldSelection?.id ?? selectedId}
@@ -324,7 +332,7 @@ export function InteractiveMap() {
           hasSelection={cardLocation !== null}
           mode={mode}
           optionsOpen={optionsOpen}
-          raised={cardLocation !== null}
+          lift={cardLocation ? detailsLift : "none"}
           onShowOverview={showOverview}
           onRecenter={recenter}
           onModeChange={setMode}
@@ -338,6 +346,7 @@ export function InteractiveMap() {
             onClose={clearSelection}
             onShowOverview={showOverview}
             onViewProperty={openGallery}
+            onPresentationChange={handlePresentationChange}
             escapeDisabled={galleryProperty !== null}
           />
         ) : null}

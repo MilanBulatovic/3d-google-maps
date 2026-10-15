@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { LOCATIONS } from "@/features/map/data/locations";
+import type { MapLocation } from "@/features/map/types/map-location";
 import { filterLocations } from "@/features/map/utils/filter-locations";
 
 describe("filterLocations", () => {
@@ -52,5 +53,35 @@ describe("filterLocations", () => {
     expect(
       filterLocations(LOCATIONS, { query: "bridge", category: "Sport" }),
     ).toEqual([]);
+  });
+
+  it("keeps every children's venue under igraonice", () => {
+    const places: MapLocation[] = [
+      { ...LOCATIONS[0], id: "kindergarten", category: "Vrtić" },
+      { ...LOCATIONS[0], id: "playground", category: "Igralište" },
+      { ...LOCATIONS[0], id: "workshop", category: "Dječija radionica" },
+      { ...LOCATIONS[0], id: "party", category: "Rođendaonica" },
+      { ...LOCATIONS[0], id: "agency", category: "Nekretnine" },
+    ];
+
+    expect(
+      filterLocations(places, { query: "", category: "Igraonice" }).map(
+        (place) => place.id,
+      ),
+    ).toEqual(["kindergarten", "playground", "workshop", "party"]);
+  });
+
+  it("keeps every emergency service under one filter", () => {
+    const places: MapLocation[] = [
+      { ...LOCATIONS[0], id: "police", category: "Policija" },
+      { ...LOCATIONS[0], id: "fire", category: "Vatrogasci" },
+      { ...LOCATIONS[0], id: "play", category: "Rođendaonica" },
+    ];
+
+    expect(
+      filterLocations(places, { query: "", category: "Hitne službe" }).map(
+        (place) => place.id,
+      ),
+    ).toEqual(["police", "fire"]);
   });
 });

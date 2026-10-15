@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Images, MapPin, Navigation, X } from "lucide-react";
+import { ChevronUp, ExternalLink, Images, MapPin, Navigation, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -17,13 +17,40 @@ import {
   buildMapsSearchUrl,
 } from "@/features/map/utils/google-maps-url";
 
+const MOBILE_QUERY = "(max-width: 639px)";
+
 type LocationInfoCardProps = {
   location: MapLocation;
   onClose: () => void;
   onShowOverview: () => void;
   onViewProperty?: () => void;
+  onPresentationChange?: (presentation: "peek" | "sheet") => void;
   escapeDisabled?: boolean;
 };
+
+function useMobileLayout() {
+  const [mobile, setMobile] = useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return false;
+    }
+
+    return window.matchMedia(MOBILE_QUERY).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const media = window.matchMedia(MOBILE_QUERY);
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return mobile;
+}
 
 function formatMetadataLabel(key: string): string {
   const spaced = key.replace(/([A-Z])/g, " $1");
@@ -70,8 +97,11 @@ export function LocationInfoCard({
   onClose,
   onShowOverview,
   onViewProperty,
+  onPresentationChange,
   escapeDisabled = false,
 }: LocationInfoCardProps) {
+  const mobile = useMobileLayout();
+  const [expanded, setExpanded] = useState(!mobile);
   const searchUrl = buildMapsSearchUrl(location.latitude, location.longitude);
   const directionsUrl = buildMapsDirectionsUrl(
     location.latitude,
@@ -83,49 +113,116 @@ export function LocationInfoCard({
   );
 
   useEffect(() => {
+    setExpanded(!mobile);
+  }, [mobile]);
+
+  useEffect(() => {
+    onPresentationChange?.(mobile && !expanded ? "peek" : "sheet");
+  }, [expanded, mobile, onPresentationChange]);
+
+  useEffect(() => {
     if (escapeDisabled) {
       return;
     }
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (mobile && expanded) {
+          setExpanded(false);
+          return;
+        }
+
         onClose();
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [escapeDisabled, onClose]);
+  }, [escapeDisabled, expanded, mobile, onClose]);
+
+  if (mobile && !expanded) {
+    return (
+      <div className="map-panel-in pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex items-center gap-2 rounded-full bg-[#fffaf3]/96 py-1.5 pr-1.5 pl-1.5 text-[#1c1917] shadow-2xl shadow-black/30 ring-1 ring-black/10">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c2410c]"
+          onClick={() => setExpanded(true)}
+          aria-expanded={false}
+          aria-label={`Show details for ${location.name}`}
+        >
+          <span className="relative size-11 shrink-0 overflow-hidden rounded-full bg-[#e7e5e4]">
+            {location.imageUrl ? (
+              <Image
+                src={location.imageUrl}
+                alt=""
+                fill
+                sizes="44px"
+                className="object-cover"
+              />
+            ) : (
+              <span className="flex size-full items-center justify-center text-[#57534e]">
+                <MapPin className="size-4" aria-hidden="true" />
+              </span>
+            )}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[0.65rem] font-medium tracking-[0.14em] text-[#c2410c] uppercase">
+              {location.category}
+            </span>
+            <span className="block truncate text-sm font-semibold">
+              {location.name}
+            </span>
+          </span>
+          <ChevronUp className="size-4 shrink-0 text-[#78716c]" aria-hidden="true" />
+        </button>
+        <Button
+          variant="icon"
+          className="size-9 shrink-0"
+          onClick={onClose}
+          aria-label="Close location details"
+        >
+          <X className="size-4" aria-hidden="true" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <aside
       aria-label={`${location.name} details`}
       className="map-panel-in pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex max-h-[46vh] flex-col overflow-hidden rounded-3xl bg-[#fffaf3]/96 text-[#1c1917] shadow-2xl shadow-black/30 ring-1 ring-black/10 sm:inset-x-auto sm:top-24 sm:right-4 sm:bottom-4 sm:max-h-none sm:w-[22rem]"
     >
-      <LocationImage
-        key={location.id}
-        src={location.imageUrl}
-        name={location.name}
-        credit={location.imageCredit}
-      />
+      <div className="relative shrink-0">
+        <LocationImage
+          key={location.id}
+          src={location.imageUrl}
+          name={location.name}
+          credit={location.imageCredit}
+        />
+        <Button
+          variant="icon"
+          className="absolute top-2 right-2 z-10 bg-white/90"
+          onClick={() => {
+            if (mobile) {
+              setExpanded(false);
+              return;
+            }
+
+            onClose();
+          }}
+          aria-label={mobile ? "Hide location details" : "Close location details"}
+        >
+          <X className="size-4" aria-hidden="true" />
+        </Button>
+      </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-auto p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-medium tracking-[0.14em] text-[#c2410c] uppercase">
-              {location.category}
-            </p>
-            <h2 className="mt-1 text-xl font-semibold tracking-tight">
-              {location.name}
-            </h2>
-          </div>
-          <Button
-            variant="icon"
-            className="shrink-0"
-            onClick={onClose}
-            aria-label="Close location details"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </Button>
+        <div>
+          <p className="text-xs font-medium tracking-[0.14em] text-[#c2410c] uppercase">
+            {location.category}
+          </p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight">
+            {location.name}
+          </h2>
         </div>
         <p className="text-sm leading-6 text-[#44403c]">{location.description}</p>
         {location.address ? (

@@ -5,6 +5,22 @@ export type LocationFilter = {
   category: string;
 };
 
+const PLAY_CATEGORIES = new Set([
+  "Vrtić",
+  "Rođendaonica",
+  "Igralište",
+  "Dječija radionica",
+]);
+
+const EMERGENCY_CATEGORIES = new Set([
+  "Policija",
+  "Vatrogasci",
+  "Hitna pomoć",
+  "Bolnica",
+  "Gorska služba",
+  "Spasilačka služba",
+]);
+
 function fold(value: string): string {
   return value
     .toLowerCase()
@@ -21,7 +37,12 @@ export function filterLocations(
   const category = filter.category;
 
   return locations.filter((location) => {
-    if (category !== "all" && location.category !== category) {
+    const matchesCategory =
+      category === "all" ||
+      location.category === category ||
+      (category === "Igraonice" && PLAY_CATEGORIES.has(location.category)) ||
+      (category === "Hitne službe" && EMERGENCY_CATEGORIES.has(location.category));
+    if (!matchesCategory) {
       return false;
     }
 

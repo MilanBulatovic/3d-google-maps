@@ -15,7 +15,7 @@ type MapControlsProps = {
   hasSelection: boolean;
   mode: SupportedMapMode;
   optionsOpen: boolean;
-  raised: boolean;
+  lift: "none" | "peek" | "sheet";
   onShowOverview: () => void;
   onRecenter: () => void;
   onModeChange: (mode: SupportedMapMode) => void;
@@ -27,7 +27,7 @@ export function MapControls({
   hasSelection,
   mode,
   optionsOpen,
-  raised,
+  lift,
   onShowOverview,
   onRecenter,
   onModeChange,
@@ -38,7 +38,9 @@ export function MapControls({
       id="map-controls"
       className={cn(
         "pointer-events-auto absolute left-3 z-20 flex flex-col items-start gap-2 sm:bottom-4 sm:left-4",
-        raised ? "bottom-[min(48vh,20rem)]" : "bottom-4",
+        lift === "sheet" && "bottom-[min(48vh,20rem)]",
+        lift === "peek" && "bottom-24",
+        lift === "none" && "bottom-4",
       )}
     >
       <div className="flex gap-2">

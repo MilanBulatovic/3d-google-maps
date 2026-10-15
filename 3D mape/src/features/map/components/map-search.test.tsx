@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -22,7 +22,6 @@ function SearchHarness({
       query={query}
       onQueryChange={setQuery}
       category={category}
-      categories={[...new Set(LOCATIONS.map((location) => location.category))]}
       onCategoryChange={setCategory}
       results={filterLocations(LOCATIONS, { query, category })}
       selectedId={null}
@@ -40,7 +39,7 @@ describe("MapSearch", () => {
 
     const search = screen.getByRole("combobox", { name: "Search places" });
     await user.click(search);
-    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
 
     await user.type(search, "zzzz-no-match");
     expect(screen.getByText("No places match your search.")).toBeInTheDocument();
@@ -48,12 +47,27 @@ describe("MapSearch", () => {
     await user.clear(search);
     const matches = filterLocations(LOCATIONS, { query: "mo", category: "all" });
     await user.type(search, "mo");
-    expect(screen.getAllByRole("option").length).toBeGreaterThan(1);
-    expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
+    const suggestions = within(screen.getByRole("listbox")).getAllByRole("option");
+    expect(suggestions.length).toBeGreaterThan(1);
+    expect(suggestions[0]).toHaveAttribute("aria-selected", "true");
 
     await user.keyboard("{ArrowDown}{Enter}");
     expect(onSelect).toHaveBeenCalledWith(matches[1].id);
     expect(search).toHaveValue(matches[1].name);
+  });
+
+  it("offers igraonice and nekretnine", async () => {
+    const user = userEvent.setup();
+    render(<SearchHarness onSelect={vi.fn()} />);
+
+    const category = screen.getByRole("combobox", { name: "Kategorija" });
+    expect(within(category).queryByRole("option", { name: "Sve" })).not.toBeInTheDocument();
+    expect(within(category).getByRole("option", { name: "Igraonice" })).toBeInTheDocument();
+    expect(within(category).getByRole("option", { name: "Nekretnine" })).toBeInTheDocument();
+    expect(within(category).getByRole("option", { name: "Hitne službe" })).toBeInTheDocument();
+
+    await user.selectOptions(category, "Nekretnine");
+    expect(category).toHaveValue("Nekretnine");
   });
 
   it("switches the field to world search", async () => {
@@ -76,7 +90,6 @@ describe("MapSearch", () => {
         query="New York"
         onQueryChange={() => undefined}
         category="all"
-        categories={[]}
         onCategoryChange={() => undefined}
         results={[
           {

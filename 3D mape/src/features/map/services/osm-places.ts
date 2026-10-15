@@ -18,6 +18,16 @@ export const OVERPASS_PLACE_SELECTORS = [
   `nwr["amenity"="childcare"](${MONTENEGRO_BBOX})`,
   `nwr["leisure"="indoor_play"](${MONTENEGRO_BBOX})`,
   `nwr["leisure"="playground"](${MONTENEGRO_BBOX})`,
+  `nwr["office"="estate_agent"](${MONTENEGRO_BBOX})`,
+  `nwr["shop"="estate_agent"](${MONTENEGRO_BBOX})`,
+  `nwr["amenity"="police"](${MONTENEGRO_BBOX})`,
+  `nwr["amenity"="fire_station"](${MONTENEGRO_BBOX})`,
+  `nwr["amenity"="hospital"](${MONTENEGRO_BBOX})`,
+  `nwr["healthcare"="hospital"](${MONTENEGRO_BBOX})`,
+  `nwr["emergency"="ambulance_station"](${MONTENEGRO_BBOX})`,
+  `nwr["emergency"="mountain_rescue"](${MONTENEGRO_BBOX})`,
+  `nwr["emergency"="water_rescue"](${MONTENEGRO_BBOX})`,
+  `nwr["emergency"="disaster_help_point"](${MONTENEGRO_BBOX})`,
 ] as const;
 
 export function overpassQuery(selector: string): string {
@@ -42,6 +52,34 @@ function fold(value: string): string {
 }
 
 function categoryFor(tags: Record<string, string>): string | null {
+  if (tags.amenity === "police") {
+    return "Policija";
+  }
+
+  if (tags.amenity === "fire_station") {
+    return "Vatrogasci";
+  }
+
+  if (tags.emergency === "ambulance_station") {
+    return "Hitna pomoć";
+  }
+
+  if (tags.amenity === "hospital" || tags.healthcare === "hospital") {
+    return "Bolnica";
+  }
+
+  if (tags.emergency === "mountain_rescue") {
+    return "Gorska služba";
+  }
+
+  if (tags.emergency === "water_rescue" || tags.emergency === "disaster_help_point") {
+    return "Spasilačka služba";
+  }
+
+  if (tags.office === "estate_agent" || tags.shop === "estate_agent") {
+    return "Nekretnine";
+  }
+
   const amenity = tags.amenity;
   if (amenity === "kindergarten" || amenity === "childcare") {
     return "Vrtić";
@@ -124,14 +162,19 @@ function descriptionFor(
   category: string,
   operator: string | undefined,
 ): string {
-  const kind =
-    category === "Vrtić"
-      ? "vrtić"
-      : category === "Rođendaonica"
-        ? "rođendaonica"
-        : category === "Igralište"
-          ? "igralište"
-          : "dječija radionica";
+  const kinds: Record<string, string> = {
+    Vrtić: "vrtić",
+    Rođendaonica: "rođendaonica",
+    Igralište: "igralište",
+    Nekretnine: "agencija za nekretnine",
+    Policija: "policijska stanica",
+    Vatrogasci: "vatrogasna stanica",
+    "Hitna pomoć": "stanica hitne pomoći",
+    Bolnica: "bolnica",
+    "Gorska služba": "stanica gorske službe",
+    "Spasilačka služba": "spasilačka stanica",
+  };
+  const kind = kinds[category] ?? "dječija radionica";
   const sentence = `${name} je ${kind} u Crnoj Gori.`;
   return operator ? `${sentence} Ustanovu vodi ${operator}.` : sentence;
 }

@@ -59,6 +59,53 @@ describe("LocationInfoCard", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("keeps a compact peek on mobile until the place is opened", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    );
+    const location = LOCATIONS.find((item) => item.id === "millennium-bridge");
+
+    if (!location) {
+      throw new Error("Expected a development location.");
+    }
+
+    render(
+      <LocationInfoCard
+        location={location}
+        onClose={() => undefined}
+        onShowOverview={() => undefined}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: location.name }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(location.name)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: `Show details for ${location.name}` }),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: location.name }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(location.description)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Hide location details" }),
+    );
+    expect(
+      screen.queryByRole("heading", { name: location.name }),
+    ).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
   it("shows a fallback when a place has no photo", () => {
     const location = LOCATIONS.find((item) => item.id === "king-nikola-palace");
 
