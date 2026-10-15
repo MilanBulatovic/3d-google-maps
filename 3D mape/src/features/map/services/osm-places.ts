@@ -1,3 +1,4 @@
+import { isInMontenegro } from "@/features/map/data/montenegro-outline";
 import type { MapLocation } from "@/features/map/types/map-location";
 import { mapLocationSchema } from "@/features/map/utils/map-validation";
 
@@ -49,6 +50,11 @@ function fold(value: string): string {
     .replaceAll("đ", "dj")
     .normalize("NFD")
     .replace(/\p{M}/gu, "");
+}
+
+function hiddenPlace(name: string): boolean {
+  const folded = fold(name);
+  return folded.includes("sukobin") || folded.includes("katerkol");
 }
 
 function categoryFor(tags: Record<string, string>): string | null {
@@ -184,14 +190,28 @@ function placeFromElement(element: OverpassElement): MapLocation | null {
   const name = tags?.name?.trim();
   const type = element.type;
   const id = element.id;
-  if (!tags || !name || (type !== "node" && type !== "way" && type !== "relation") || id == null) {
+  if (
+    !tags ||
+    !name ||
+    hiddenPlace(name) ||
+    (type !== "node" && type !== "way" && type !== "relation") ||
+    id == null
+  ) {
     return null;
   }
 
   const latitude = element.lat ?? element.center?.lat;
   const longitude = element.lon ?? element.center?.lon;
   const category = categoryFor(tags);
-  if (latitude == null || longitude == null || !category) {
+  const country = `${tags["addr:country"] ?? ""} ${tags["is_in:country"] ?? ""}`.toLowerCase();
+  const markedAlbania = /\bal\b|albania|shqip/.test(country);
+  if (
+    latitude == null ||
+    longitude == null ||
+    !category ||
+    markedAlbania ||
+    !isInMontenegro(latitude, longitude)
+  ) {
     return null;
   }
 
