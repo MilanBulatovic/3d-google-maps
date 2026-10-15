@@ -22,6 +22,8 @@ type ExampleSceneProps = {
   anchorRef: RefObject<HTMLDivElement | null>;
   onSelect: (id: FloorHotspot["id"] | null) => void;
   onHover: (id: FloorHotspot["id"] | null) => void;
+  /** When false the WebGL loop stops, but the renderer stays in memory. */
+  active?: boolean;
 };
 
 type Marker = {
@@ -38,6 +40,7 @@ export function ExampleScene({
   anchorRef,
   onSelect,
   onHover,
+  active = true,
 }: ExampleSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onSelectRef = useRef(onSelect);
@@ -45,6 +48,8 @@ export function ExampleScene({
   const selectedIdRef = useRef(selectedId);
   const hoveredIdRef = useRef(hoveredId);
   const anchorRefProp = useRef(anchorRef);
+  const activeRef = useRef(active);
+  const resumeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -52,6 +57,10 @@ export function ExampleScene({
     selectedIdRef.current = selectedId;
     hoveredIdRef.current = hoveredId;
     anchorRefProp.current = anchorRef;
+    activeRef.current = active;
+    if (active) {
+      resumeRef.current?.();
+    }
   });
 
   useEffect(() => {
@@ -223,6 +232,11 @@ export function ExampleScene({
     };
 
     const renderFrame = () => {
+      if (!activeRef.current) {
+        frame = 0;
+        return;
+      }
+
       frame = window.requestAnimationFrame(renderFrame);
       const elapsed = clock.getElapsedTime();
 
@@ -342,6 +356,12 @@ export function ExampleScene({
 
       controls.update();
       renderer.render(scene, camera);
+    };
+
+    resumeRef.current = () => {
+      if (frame === 0 && activeRef.current) {
+        renderFrame();
+      }
     };
 
     renderFrame();
@@ -506,17 +526,6 @@ const TREES: TreeSpot[] = [
   { x: 7.4, z: 3.6, scale: 1.15, yaw: 0.6, kind: "leaf" },
 ];
 
-const BUSHES: Array<{ x: number; z: number; scale: number }> = [
-  { x: -2.6, z: 1.5, scale: 1 },
-  { x: 1.8, z: 2.2, scale: 0.8 },
-  { x: 2.4, z: -1.6, scale: 1.1 },
-  { x: -1.9, z: -2.4, scale: 0.75 },
-  { x: -4.1, z: 2.2, scale: 0.9 },
-  { x: 4.2, z: 0.2, scale: 0.85 },
-  { x: 0.2, z: -3.6, scale: 1.05 },
-  { x: -5.6, z: -1.2, scale: 0.7 },
-];
-
 function createScenery() {
   const scenery = new THREE.Group();
 
@@ -531,10 +540,10 @@ function createScenery() {
   meadow.receiveShadow = true;
   scenery.add(meadow);
 
+  const showTrees = false;
   const trunk = new THREE.CylinderGeometry(0.09, 0.14, 1, 6);
   const pineCone = new THREE.ConeGeometry(0.62, 1.05, 7);
   const canopy = new THREE.IcosahedronGeometry(0.55, 0);
-  const bushGeo = new THREE.IcosahedronGeometry(0.32, 0);
   const bark = new THREE.MeshStandardMaterial({
     color: "#6a4a32",
     roughness: 0.92,
@@ -559,27 +568,15 @@ function createScenery() {
     roughness: 0.84,
     flatShading: true,
   });
-  const bushMat = new THREE.MeshStandardMaterial({
-    color: "#3a7040",
-    roughness: 0.9,
-    flatShading: true,
-  });
 
-  for (const spot of TREES) {
-    scenery.add(
-      spot.kind === "pine"
-        ? createPine(spot, trunk, pineCone, bark, pine, pineDark)
-        : createLeafTree(spot, trunk, canopy, bark, leaf, leafDark),
-    );
-  }
-
-  for (const spot of BUSHES) {
-    const bush = new THREE.Mesh(bushGeo, bushMat);
-    bush.position.set(spot.x, 0.08, spot.z);
-    bush.scale.set(spot.scale, spot.scale * 0.65, spot.scale);
-    bush.castShadow = true;
-    bush.receiveShadow = true;
-    scenery.add(bush);
+  if (showTrees) {
+    for (const spot of TREES) {
+      scenery.add(
+        spot.kind === "pine"
+          ? createPine(spot, trunk, pineCone, bark, pine, pineDark)
+          : createLeafTree(spot, trunk, canopy, bark, leaf, leafDark),
+      );
+    }
   }
 
   return scenery;

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "trg-republike",
+    "name": "Trg Republike",
+    "category": "Lokacija",
+    "description": "Lazni pin na glavnom trgu. Linija i naziv se pojave kad kamera stane iznad njega.",
+    "latitude": 42.4419,
+    "longitude": 19.2623,
+    "address": "Trg Republike, Podgorica",
+    "pinStyle": "plain"
+  },
+  {
+    "id": "most-milenijum",
+    "name": "Most Milenijum",
+    "category": "Lokacija",
+    "description": "Lazni pin na mostu preko Morače. Nema ulazak u zgradu.",
+    "latitude": 42.445131,
+    "longitude": 19.258355,
+    "address": "13. jula, Podgorica",
+    "pinStyle": "plain"
+  },
+  {
+    "id": "park-petrovic",
+    "name": "Park Petrović",
+    "category": "Lokacija",
+    "description": "Lazni pin u parku na zapadnoj strani centra.",
+    "latitude": 42.4375,
+    "longitude": 19.2475,
+    "address": "Park Petrović, Podgorica",
+    "pinStyle": "plain"
+  },
+  {
+    "id": "zgrada-moraca",
+    "name": "Zgrada na Morači",
+    "category": "Zgrada",
+    "description": "Custom pin. Poslije zumiranja otvara se model zgrade i spratovi.",
+    "latitude": 42.4432,
+    "longitude": 19.2548,
+    "address": "Kralja Nikole, Podgorica",
+    "pinStyle": "model"
+  },
+  {
+    "id": "zgrada-preko",
+    "name": "Zgrada Preko Morače",
+    "category": "Zgrada",
+    "description": "Custom pin na istočnoj obali. Isti model zgrade, sa izborom sprata.",
+    "latitude": 42.4476,
+    "longitude": 19.2702,
+    "address": "Preko Morače, Podgorica",
+    "pinStyle": "model"
+  },
+  {
+    "id": "zgrada-varos",
+    "name": "Zgrada u Staroj varoši",
+    "category": "Zgrada",
+    "description": "Custom pin u starom gradu. Klik ulazi u model kad kamera sleti.",
+    "latitude": 42.4342,
+    "longitude": 19.2634,
+    "address": "Stara varoš, Podgorica",
+    "pinStyle": "model"
+  }
+]

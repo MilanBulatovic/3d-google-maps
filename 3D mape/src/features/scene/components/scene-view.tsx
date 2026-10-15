@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   FLOOR_HOTSPOTS,
@@ -16,7 +16,12 @@ const ExampleScene = dynamic(
   { ssr: false },
 );
 
-export function SceneView() {
+type SceneViewProps = {
+  active?: boolean;
+  resetToken?: number;
+};
+
+export function SceneView({ active = true, resetToken = 0 }: SceneViewProps) {
   const [selectedId, setSelectedId] = useState<FloorHotspot["id"] | null>(
     null,
   );
@@ -28,6 +33,11 @@ export function SceneView() {
     FLOOR_HOTSPOTS.find((hotspot) => hotspot.id === hoveredId) ?? null;
   const callout = selected ? null : hovered;
 
+  useEffect(() => {
+    setSelectedId(null);
+    setHoveredId(null);
+  }, [resetToken]);
+
   return (
     <div className="relative h-full w-full">
       <ExampleScene
@@ -36,6 +46,7 @@ export function SceneView() {
         anchorRef={anchorRef}
         onSelect={setSelectedId}
         onHover={setHoveredId}
+        active={active}
       />
       {callout ? (
         <div key={callout.id} ref={anchorRef} className="pin-callout">

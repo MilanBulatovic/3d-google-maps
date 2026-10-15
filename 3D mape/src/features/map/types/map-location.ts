@@ -25,4 +25,6 @@ export type MapLocation = {
   /** When set, selection flies to this country or city scale instead of the close bird's-eye. */
   viewRange?: number;
   viewTilt?: number;
+  /** Plain pins only reveal a label. Model pins also open the building scene. */
+  pinStyle?: "plain" | "model";
 };

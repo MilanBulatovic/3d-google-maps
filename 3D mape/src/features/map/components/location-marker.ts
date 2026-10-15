@@ -37,10 +37,31 @@ const SELECTED_PIN = {
 export type MarkerRecord = {
   id: string;
   category: string;
+  pinStyle: MapLocation["pinStyle"];
   marker: google.maps.maps3d.Marker3DInteractiveElement;
   pin: google.maps.marker.PinElement;
   onClick: (event: Event) => void;
 };
+
+function pinBackground(
+  pinStyle: MapLocation["pinStyle"],
+  category: string,
+  selected: boolean,
+): string {
+  if (selected) {
+    return SELECTED_PIN.background;
+  }
+
+  if (pinStyle === "model") {
+    return "#9a3412";
+  }
+
+  if (pinStyle === "plain") {
+    return "#44403c";
+  }
+
+  return CATEGORY_COLORS[category] ?? "#1c1917";
+}
 
 export function createLocationMarker(
   location: MapLocation,
@@ -48,10 +69,10 @@ export function createLocationMarker(
   onSelect: (id: string) => void,
 ): MarkerRecord {
   const pin = new runtime.PinElement({
-    background: CATEGORY_COLORS[location.category] ?? "#1c1917",
+    background: pinBackground(location.pinStyle, location.category, false),
     borderColor: UNSELECTED_PIN.borderColor,
     glyphColor: UNSELECTED_PIN.glyphColor,
-    scale: UNSELECTED_PIN.scale,
+    scale: location.pinStyle === "model" ? 1.2 : UNSELECTED_PIN.scale,
   });
 
   const marker = new runtime.Marker3DInteractiveElement({
@@ -70,7 +91,7 @@ export function createLocationMarker(
     collisionPriority: UNSELECTED_PIN.collisionPriority,
   });
 
-  marker.append(pin);
+  marker.replaceChildren(pin);
 
   const onClick = (event: Event) => {
     event.stopPropagation();
@@ -79,7 +100,14 @@ export function createLocationMarker(
 
   marker.addEventListener("gmp-click", onClick);
 
-  return { id: location.id, category: location.category, marker, pin, onClick };
+  return {
+    id: location.id,
+    category: location.category,
+    pinStyle: location.pinStyle,
+    marker,
+    pin,
+    onClick,
+  };
 }
 
 export function applyMarkerAppearance(
@@ -87,12 +115,18 @@ export function applyMarkerAppearance(
   selected: boolean,
 ): void {
   const appearance = selected ? SELECTED_PIN : UNSELECTED_PIN;
-  record.pin.background = selected
-    ? SELECTED_PIN.background
-    : (CATEGORY_COLORS[record.category] ?? "#1c1917");
+  record.pin.background = pinBackground(
+    record.pinStyle,
+    record.category,
+    selected,
+  );
   record.pin.borderColor = appearance.borderColor;
   record.pin.glyphColor = appearance.glyphColor;
-  record.pin.scale = appearance.scale;
+  record.pin.scale = selected
+    ? appearance.scale
+    : record.pinStyle === "model"
+      ? 1.2
+      : appearance.scale;
   record.marker.zIndex = appearance.zIndex;
   record.marker.collisionPriority = appearance.collisionPriority;
 }

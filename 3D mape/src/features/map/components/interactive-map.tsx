@@ -14,7 +14,7 @@ import { MapError } from "@/features/map/components/map-error";
 import { MapLoading } from "@/features/map/components/map-loading";
 import { MapSearch } from "@/features/map/components/map-search";
 import { WORLD_SEARCH } from "@/features/map/config/search";
-import { useMapLocations } from "@/features/map/hooks/use-map-locations";
+import { MAP_PINS } from "@/features/map/data/locations";
 import { useMontenegroSearch } from "@/features/map/hooks/use-montenegro-search";
 import { useWorldSearch } from "@/features/map/hooks/use-world-search";
 import { resolveMontenegroHit } from "@/features/map/services/montenegro-search";
@@ -24,6 +24,7 @@ import type { MapLocation } from "@/features/map/types/map-location";
 import { PropertyGalleryModal } from "@/features/property-gallery/components/property-gallery-modal";
 import { getPropertyByLocationId } from "@/features/property-gallery/data/properties";
 import type { Property } from "@/features/property-gallery/types";
+import { BuildingSceneOverlay } from "@/features/scene/components/building-scene-overlay";
 import { applySelection } from "@/features/map/utils/selection";
 import { getGoogleMapsApiKey } from "@/lib/env";
 
@@ -48,6 +49,60 @@ function useCompactHeader() {
 const MISSING_KEY_MESSAGE =
   "Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local, then restart the dev server. Use a browser key restricted to this site and to the Maps JavaScript API.";
 
+const MODEL_REVEAL_DELAY_MS = 720;
+
+function SettledPinCallout({
+  location,
+  onClose,
+}: {
+  location: MapLocation;
+  onClose: () => void;
+}) {
+  const [placed, setPlaced] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setPlaced(true));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.id]);
+
+  return (
+    <div className="pointer-events-none absolute top-[58%] left-1/2 z-30">
+      <div className="pin-callout" data-placed={placed ? "true" : "false"}>
+        <div className="pin-callout-stem" aria-hidden="true">
+          <span className="pin-callout-line" />
+        </div>
+        <div className="pin-callout-card">
+          <button
+            type="button"
+            onClick={onClose}
+            className="pointer-events-auto absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full text-[#f4efe4] transition hover:bg-white/10"
+            aria-label="Zatvori"
+          >
+            <X className="size-4" aria-hidden="true" />
+          </button>
+          <p className="pr-8 text-xs font-medium tracking-[0.14em] text-[#c8d4c4] uppercase">
+            {location.pinStyle === "model" ? "Zgrada" : "Lokacija"}
+          </p>
+          <h2 className="mt-1 pr-8 text-base font-semibold">{location.name}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-[#d7e0d4]">
+            {location.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function prefersReducedMotion(): boolean {
+  if (typeof window.matchMedia !== "function") {
+    return false;
+  }
+
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export function InteractiveMap() {
   const apiKey = getGoogleMapsApiKey();
   const [query, setQuery] = useState("");
@@ -55,6 +110,10 @@ export function InteractiveMap() {
   const [worldSearch, setWorldSearch] = useState(WORLD_SEARCH);
   const [worldSelection, setWorldSelection] = useState<MapLocation | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [calloutId, setCalloutId] = useState<string | null>(null);
+  const [buildingOpen, setBuildingOpen] = useState(false);
+  const [buildingTitle, setBuildingTitle] = useState("");
+  const [sceneSession, setSceneSession] = useState(0);
   const [mode, setMode] = useState<SupportedMapMode>("SATELLITE");
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -81,8 +140,15 @@ export function InteractiveMap() {
   const [galleryProperty, setGalleryProperty] = useState<Property | null>(null);
   const controllerRef = useRef<MapCameraController | null>(null);
   const galleryCameraRef = useRef<CameraTarget | null>(null);
-  const pendingLocationRef = useRef<MapLocation | null>(null);
-  const { filtered: locations, placesSource } = useMapLocations("", category);
+  const pendingLocationRef = useRef<{
+    location: MapLocation;
+    reveal: boolean;
+  } | null>(null);
+  const revealIdRef = useRef<string | null>(null);
+  const revealTimerRef = useRef<number | null>(null);
+  const locations = MAP_PINS;
+  const calloutLocation =
+    MAP_PINS.find((pin) => pin.id === calloutId) ?? null;
   const montenegro = useMontenegroSearch(query, !worldSearch, apiKey);
   const world = useWorldSearch(query, worldSearch, apiKey);
   const search = worldSearch ? world : montenegro;
@@ -126,20 +192,56 @@ export function InteractiveMap() {
     }
   }
 
+  function cancelReveal() {
+    revealIdRef.current = null;
+    if (revealTimerRef.current !== null) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+  }
+
   function settleFlight() {
     setFlyingTo(null);
   }
 
-  function startFlight(location: MapLocation) {
+  function finishReveal() {
+    setFlyingTo(null);
+    const id = revealIdRef.current;
+    revealIdRef.current = null;
+    if (!id) {
+      return;
+    }
+
+    setCalloutId(id);
+    const pin = MAP_PINS.find((item) => item.id === id);
+    if (pin?.pinStyle !== "model") {
+      return;
+    }
+
+    const delay = prefersReducedMotion() ? 0 : MODEL_REVEAL_DELAY_MS;
+    revealTimerRef.current = window.setTimeout(() => {
+      revealTimerRef.current = null;
+      setBuildingTitle(pin.name);
+      setSceneSession((value) => value + 1);
+      setBuildingOpen(true);
+    }, delay);
+  }
+
+  function startFlight(location: MapLocation, reveal: boolean) {
+    cancelReveal();
+    setCalloutId(null);
+    setBuildingOpen(false);
+    revealIdRef.current = reveal ? location.id : null;
+
     const controller = controllerRef.current;
     if (!controller) {
-      pendingLocationRef.current = location;
+      pendingLocationRef.current = { location, reveal };
       return;
     }
 
     pendingLocationRef.current = null;
     const animated = controller.flyToLocation(location, {
-      onSettle: settleFlight,
+      onSettle: finishReveal,
     });
     setFlyingTo(animated ? location.name : null);
   }
@@ -154,7 +256,7 @@ export function InteractiveMap() {
     setSelectedId(nextId);
     const location = locations.find((item) => item.id === id);
     if (location) {
-      startFlight(location);
+      startFlight(location, true);
     }
   }
 
@@ -167,7 +269,7 @@ export function InteractiveMap() {
     setSelectedId(null);
     void resolveMontenegroHit(apiKey, hit).then((place) => {
       setWorldSelection(place);
-      startFlight(place);
+      startFlight(place, false);
     });
   }
 
@@ -179,7 +281,7 @@ export function InteractiveMap() {
 
     setSelectedId(null);
     setWorldSelection(place);
-    startFlight(place);
+    startFlight(place, false);
   }
 
   function changeWorldSearch(enabled: boolean) {
@@ -189,6 +291,9 @@ export function InteractiveMap() {
   }
 
   function clearSelection() {
+    cancelReveal();
+    setCalloutId(null);
+    setBuildingOpen(false);
     setWorldSelection(null);
     setGalleryProperty(null);
     galleryCameraRef.current = null;
@@ -201,6 +306,9 @@ export function InteractiveMap() {
       return;
     }
 
+    cancelReveal();
+    setCalloutId(null);
+    setBuildingOpen(false);
     setWorldSelection(null);
     const animated = controller.showOverview({ onSettle: settleFlight });
     setFlyingTo(animated ? "Crna Gora" : null);
@@ -260,10 +368,11 @@ export function InteractiveMap() {
             const pending = pendingLocationRef.current;
             if (pending) {
               pendingLocationRef.current = null;
-              const animated = controller.flyToLocation(pending, {
-                onSettle: settleFlight,
+              revealIdRef.current = pending.reveal ? pending.location.id : null;
+              const animated = controller.flyToLocation(pending.location, {
+                onSettle: finishReveal,
               });
-              setFlyingTo(animated ? pending.name : null);
+              setFlyingTo(animated ? pending.location.name : null);
             }
           }}
           onUnavailable={() => {
@@ -373,13 +482,17 @@ export function InteractiveMap() {
           >
             Flying to {flyingTo}
           </p>
-        ) : placesSource === "loading" ? (
-          <p
-            className="pointer-events-none absolute top-[5.5rem] left-1/2 -translate-x-1/2 rounded-full bg-[#121612]/80 px-3 py-1 text-xs tracking-wide text-[#f5f5f4] sm:top-24"
-            role="status"
-          >
-            Loading places from OpenStreetMap
-          </p>
+        ) : null}
+
+        {calloutLocation ? (
+          <SettledPinCallout
+            key={calloutLocation.id}
+            location={calloutLocation}
+            onClose={() => {
+              cancelReveal();
+              setCalloutId(null);
+            }}
+          />
         ) : null}
 
         <MapControls
@@ -387,17 +500,17 @@ export function InteractiveMap() {
           hasSelection={cardLocation !== null}
           mode={mode}
           optionsOpen={optionsOpen}
-          lift={cardLocation ? detailsLift : "none"}
+          lift={worldSelection ? detailsLift : "none"}
           onShowOverview={showOverview}
           onRecenter={recenter}
           onModeChange={setMode}
           onNudgeHeading={nudgeHeading}
         />
 
-        {cardLocation ? (
+        {worldSelection ? (
           <LocationInfoCard
-            key={cardLocation.id}
-            location={cardLocation}
+            key={worldSelection.id}
+            location={worldSelection}
             onClose={clearSelection}
             onShowOverview={showOverview}
             onViewProperty={openGallery}
@@ -409,6 +522,12 @@ export function InteractiveMap() {
       {galleryProperty ? (
         <PropertyGalleryModal property={galleryProperty} onClose={closeGallery} />
       ) : null}
+      <BuildingSceneOverlay
+        open={buildingOpen}
+        session={sceneSession}
+        title={buildingTitle}
+        onClose={() => setBuildingOpen(false)}
+      />
     </div>
   );
 }

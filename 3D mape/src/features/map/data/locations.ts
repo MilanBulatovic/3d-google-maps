@@ -1,4 +1,5 @@
 import childrenVenues from "@/features/map/data/children-venues.json";
+import mapPins from "@/features/map/data/map-pins.json";
 import { parseMapLocations } from "@/features/map/utils/map-validation";
 
 /**
@@ -167,6 +168,9 @@ const locationInput = [
     tags: ["residence", "house", "stara varos", "property"],
   },
 ];
+
+/** Pins drawn on the terrain. Live place search is not used for these. */
+export const MAP_PINS = parseMapLocations(mapPins);
 
 export const CURATED_LOCATIONS = parseMapLocations(locationInput);
 

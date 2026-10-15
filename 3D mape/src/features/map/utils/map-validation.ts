@@ -47,6 +47,7 @@ export const mapLocationSchema = z.object({
   metadata: metadataSchema.optional(),
   viewRange: z.number().finite().positive().optional(),
   viewTilt: z.number().finite().min(0).max(90).optional(),
+  pinStyle: z.enum(["plain", "model"]).optional(),
 });
 
 export const mapLocationsSchema = z
