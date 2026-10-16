@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 import { PODGORICA_OVERVIEW } from "@/features/map/config/camera";
 import { useGoogleMaps3d } from "@/features/map/hooks/use-google-maps-3d";
@@ -31,6 +31,10 @@ type MapCanvasProps = {
   onReady: (controller: MapCameraController) => void;
   onUnavailable: () => void;
   onError: (failure: MapFailure) => void;
+  /** Pin whose info window should stay glued to the marker while the camera moves. */
+  calloutId?: string | null;
+  /** Zero-size element Google keeps on the pin. The info window copies its screen position. */
+  pinAnchorRef?: RefObject<HTMLElement | null>;
 };
 
 export function MapCanvas({
@@ -42,6 +46,8 @@ export function MapCanvas({
   onReady,
   onUnavailable,
   onError,
+  calloutId = null,
+  pinAnchorRef,
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.maps3d.Map3DElement | null>(null);
@@ -162,6 +168,39 @@ export function MapCanvas({
       applyMarkerAppearance(record, id === selectedIdRef.current);
     }
   }, [locations, runtime]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !runtime || !calloutId) {
+      return;
+    }
+
+    const record = markersRef.current.get(calloutId);
+    if (!record) {
+      return;
+    }
+
+    const popover = new runtime.PopoverElement({
+      positionAnchor: record.marker,
+      open: true,
+      lightDismissDisabled: true,
+      autoPanDisabled: true,
+    });
+    const sentinel = document.createElement("div");
+    sentinel.className = "map-pin-sentinel";
+    popover.append(sentinel);
+    if (pinAnchorRef) {
+      pinAnchorRef.current = sentinel;
+    }
+    map.append(popover);
+
+    return () => {
+      if (pinAnchorRef?.current === sentinel) {
+        pinAnchorRef.current = null;
+      }
+      popover.remove();
+    };
+  }, [calloutId, locations, pinAnchorRef, runtime]);
 
   useEffect(() => {
     const map = mapRef.current;

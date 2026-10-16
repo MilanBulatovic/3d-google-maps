@@ -1,7 +1,7 @@
 "use client";
 
 import { Mountain, Search, SlidersHorizontal, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LocationInfoCard } from "@/features/map/components/location-info-card";
@@ -54,10 +54,13 @@ const MODEL_REVEAL_DELAY_MS = 720;
 function SettledPinCallout({
   location,
   onClose,
+  pinAnchorRef,
 }: {
   location: MapLocation;
   onClose: () => void;
+  pinAnchorRef: RefObject<HTMLElement | null>;
 }) {
+  const anchorRef = useRef<HTMLDivElement>(null);
   const [placed, setPlaced] = useState(false);
 
   useEffect(() => {
@@ -67,13 +70,64 @@ function SettledPinCallout({
     return () => cancelAnimationFrame(frame);
   }, [location.id]);
 
+  useEffect(() => {
+    const node = anchorRef.current;
+    if (!node) {
+      return;
+    }
+
+    let frame = 0;
+    const tick = () => {
+      const sentinel = pinAnchorRef.current;
+      const card = node.querySelector("[data-callout-card]");
+      const half = card instanceof HTMLElement ? card.offsetWidth / 2 : 128;
+      const cardHeight = card instanceof HTMLElement ? card.offsetHeight : 108;
+      const margin = 16;
+      const topLimit = 108;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      if (sentinel) {
+        const pin = sentinel.getBoundingClientRect();
+        const host =
+          node.offsetParent instanceof HTMLElement
+            ? node.offsetParent.getBoundingClientRect()
+            : { left: 0, top: 0 };
+        const x = pin.left - host.left;
+        const y = pin.top - host.top;
+        node.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        const gap = 80;
+        const roomAbove = pin.top - topLimit;
+        const roomBelow = height - margin - pin.top;
+        node.dataset.side =
+          roomAbove < cardHeight + gap && roomBelow > roomAbove ? "below" : "above";
+        let shift = 0;
+        if (pin.left + half > width - margin) {
+          shift = width - margin - half - pin.left;
+        }
+        if (pin.left + shift - half < margin) {
+          shift = margin + half - pin.left;
+        }
+        node.style.setProperty("--callout-shift", `${shift}px`);
+        node.style.setProperty(
+          "--elbow-origin",
+          shift < 0 ? "right center" : "left center",
+        );
+      }
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [location.id, pinAnchorRef]);
+
   return (
-    <div className="pointer-events-none absolute top-[58%] left-1/2 z-30">
+    <div ref={anchorRef} className="map-pin-anchor map-pin-anchor-overlay">
       <div className="pin-callout" data-placed={placed ? "true" : "false"}>
         <div className="pin-callout-stem" aria-hidden="true">
           <span className="pin-callout-line" />
+          <span className="pin-callout-elbow" />
         </div>
-        <div className="pin-callout-card">
+        <div data-callout-card className="pin-callout-card">
           <button
             type="button"
             onClick={onClose}
@@ -139,6 +193,7 @@ export function InteractiveMap() {
   const [flyingTo, setFlyingTo] = useState<string | null>(null);
   const [galleryProperty, setGalleryProperty] = useState<Property | null>(null);
   const controllerRef = useRef<MapCameraController | null>(null);
+  const pinAnchorRef = useRef<HTMLElement | null>(null);
   const galleryCameraRef = useRef<CameraTarget | null>(null);
   const pendingLocationRef = useRef<{
     location: MapLocation;
@@ -383,6 +438,8 @@ export function InteractiveMap() {
             setPhase("error");
             setFlyingTo(null);
           }}
+          calloutId={calloutLocation?.id ?? null}
+          pinAnchorRef={pinAnchorRef}
         />
       ) : null}
 
@@ -475,6 +532,18 @@ export function InteractiveMap() {
           </div>
         </header>
 
+        {calloutLocation ? (
+          <SettledPinCallout
+            key={calloutLocation.id}
+            location={calloutLocation}
+            pinAnchorRef={pinAnchorRef}
+            onClose={() => {
+              cancelReveal();
+              setCalloutId(null);
+            }}
+          />
+        ) : null}
+
         {flyingTo ? (
           <p
             className="pointer-events-none absolute top-[5.5rem] left-1/2 -translate-x-1/2 rounded-full bg-[#121612]/80 px-3 py-1 text-xs tracking-wide text-[#f5f5f4] sm:top-24"
@@ -482,17 +551,6 @@ export function InteractiveMap() {
           >
             Flying to {flyingTo}
           </p>
-        ) : null}
-
-        {calloutLocation ? (
-          <SettledPinCallout
-            key={calloutLocation.id}
-            location={calloutLocation}
-            onClose={() => {
-              cancelReveal();
-              setCalloutId(null);
-            }}
-          />
         ) : null}
 
         <MapControls

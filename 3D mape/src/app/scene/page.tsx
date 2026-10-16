@@ -6,7 +6,7 @@ import { SceneView } from "@/features/scene/components/scene-view";
 export const metadata: Metadata = {
   title: "Building scene",
   description:
-    "A Three.js apartment building. Hover a floor, then click to fly into that apartment.",
+    "A Three.js apartment building. Click a floor to pull it out, then click again to step inside.",
 };
 
 export default function ScenePage() {
@@ -22,8 +22,8 @@ export default function ScenePage() {
             Building scene
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[#d7e0d4]">
-            Hover a pulsing point to read the floor. Click it and the camera
-            flies into that apartment.
+            Hover a pulsing point to read the floor. The first click pulls that
+            story out of the building. The second click steps inside.
           </p>
         </div>
         <Link

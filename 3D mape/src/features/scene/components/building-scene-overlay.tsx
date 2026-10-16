@@ -21,7 +21,9 @@ export function BuildingSceneOverlay({
 
   useEffect(() => {
     if (open) {
-      setKept(true);
+      setTimeout(() => {
+        setKept(true);
+      }, 0);
     }
   }, [open]);
 
@@ -47,7 +49,7 @@ export function BuildingSceneOverlay({
             </p>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">{title}</h2>
             <p className="mt-2 text-sm leading-relaxed text-[#d7e0d4]">
-              Pređi preko tačke na spratu, pa klikni da uđeš u stan.
+              Klikni tačku na spratu da ga izvučeš iz zgrade. Još jedan klik ulazi u stan.
             </p>
           </div>
           <button

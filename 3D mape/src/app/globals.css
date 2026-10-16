@@ -192,6 +192,26 @@ body {
   transform: translateX(calc(-50% + var(--callout-shift, 0px))) translateY(0);
 }
 
+.map-pin-anchor[data-side="below"] .pin-callout-stem {
+  bottom: auto;
+  top: 8px;
+}
+
+.map-pin-anchor[data-side="below"] .pin-callout-line {
+  transform-origin: top center;
+}
+
+.map-pin-anchor[data-side="below"] .pin-callout-elbow {
+  top: auto;
+  bottom: 0;
+}
+
+.map-pin-anchor[data-side="below"] .pin-callout-card,
+.map-pin-anchor[data-side="below"] .pin-callout[data-placed="true"] .pin-callout-card {
+  bottom: auto;
+  top: 80px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .building-overlay,
   .map-panel-in,
@@ -227,6 +247,31 @@ body {
     opacity: 1;
     transform: translateX(calc(-50% + var(--callout-shift, 0px)));
   }
+
+  .map-pin-anchor[data-side="below"] .pin-callout[data-placed="true"] .pin-callout-line {
+    transform-origin: top center;
+  }
+}
+
+.map-pin-sentinel {
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.map-pin-anchor {
+  position: relative;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.map-pin-anchor-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 30;
 }
 
 .map-pin-callout.pin-callout {

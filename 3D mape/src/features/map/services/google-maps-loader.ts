@@ -4,6 +4,7 @@ export type Maps3dRuntime = {
   Map3DElement: typeof google.maps.maps3d.Map3DElement;
   Marker3DInteractiveElement: typeof google.maps.maps3d.Marker3DInteractiveElement;
   PinElement: typeof google.maps.marker.PinElement;
+  PopoverElement: typeof google.maps.maps3d.PopoverElement;
 };
 
 const GOOGLE_MAPS_CHANNEL = "weekly";
@@ -39,6 +40,7 @@ async function loadRuntime(apiKey: string): Promise<Maps3dRuntime> {
     Map3DElement: maps3d.Map3DElement,
     Marker3DInteractiveElement: maps3d.Marker3DInteractiveElement,
     PinElement: marker.PinElement,
+    PopoverElement: maps3d.PopoverElement,
   };
 }
 

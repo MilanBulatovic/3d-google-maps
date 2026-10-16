@@ -8,16 +8,20 @@ import {
   FACADE_Z,
   FLOOR_HEIGHT,
   FLOOR_HOTSPOTS,
+  FLOOR_PULL,
   type FloorHotspot,
+  type FloorView,
 } from "@/features/scene/data/house-hotspots";
 
 const BACKGROUND = "#121612";
-const PULSE_COLOR = "#ff4d8d";
+const PIN_COLOR = "#ffffff";
+const PULSE_COLOR = "#ffffff";
 const OUTSIDE_POSITION = new THREE.Vector3(6.8, 4.6, 9.2);
 const OUTSIDE_TARGET = new THREE.Vector3(0, 1.9, 0);
 
 type ExampleSceneProps = {
   selectedId: FloorHotspot["id"] | null;
+  view: FloorView;
   hoveredId: FloorHotspot["id"] | null;
   anchorRef: RefObject<HTMLDivElement | null>;
   onSelect: (id: FloorHotspot["id"] | null) => void;
@@ -29,6 +33,7 @@ type ExampleSceneProps = {
 type Marker = {
   id: FloorHotspot["id"];
   group: THREE.Group;
+  baseZ: number;
   rings: THREE.Mesh[];
   core: THREE.Mesh;
   hit: THREE.Mesh;
@@ -36,6 +41,7 @@ type Marker = {
 
 export function ExampleScene({
   selectedId,
+  view,
   hoveredId,
   anchorRef,
   onSelect,
@@ -46,6 +52,7 @@ export function ExampleScene({
   const onSelectRef = useRef(onSelect);
   const onHoverRef = useRef(onHover);
   const selectedIdRef = useRef(selectedId);
+  const viewRef = useRef(view);
   const hoveredIdRef = useRef(hoveredId);
   const anchorRefProp = useRef(anchorRef);
   const activeRef = useRef(active);
@@ -55,6 +62,7 @@ export function ExampleScene({
     onSelectRef.current = onSelect;
     onHoverRef.current = onHover;
     selectedIdRef.current = selectedId;
+    viewRef.current = view;
     hoveredIdRef.current = hoveredId;
     anchorRefProp.current = anchorRef;
     activeRef.current = active;
@@ -195,38 +203,44 @@ export function ExampleScene({
     const scratchPosition = new THREE.Vector3();
     const scratchTarget = new THREE.Vector3();
     let flight: Flight | null = null;
-    let appliedSelection: FloorHotspot["id"] | null = null;
+    let appliedKey = "outside:";
     let lastLevel = 1;
 
-    const setOrbitLimits = (inside: boolean) => {
-      controls.minDistance = inside ? 0.2 : 6;
-      controls.maxDistance = inside ? 1.5 : 18;
-      controls.maxPolarAngle = inside ? Math.PI * 0.92 : Math.PI / 2.05;
-      camera.fov = inside ? 60 : 42;
-      camera.updateProjectionMatrix();
+    const setOrbitLimits = (mode: FloorView) => {
+      if (mode === "inside") {
+        controls.minDistance = 0.2;
+        controls.maxDistance = 1.5;
+        controls.maxPolarAngle = Math.PI * 0.92;
+      } else if (mode === "extracted") {
+        controls.minDistance = 2.6;
+        controls.maxDistance = 9;
+        controls.maxPolarAngle = Math.PI / 2.02;
+      } else {
+        controls.minDistance = 6;
+        controls.maxDistance = 18;
+        controls.maxPolarAngle = Math.PI / 2.05;
+      }
     };
 
-    const startFlight = (id: FloorHotspot["id"] | null) => {
-      const entry = id ? ENTRIES[id] : null;
-      const exitY = lastLevel * FLOOR_HEIGHT;
-      if (id) {
-        lastLevel = FLOOR_HOTSPOTS.find((hotspot) => hotspot.id === id)!.level;
-      }
+    const startFlight = (mode: FloorView, id: FloorHotspot["id"] | null) => {
+      const level = id
+        ? FLOOR_HOTSPOTS.find((hotspot) => hotspot.id === id)!.level
+        : lastLevel;
+      if (id) lastLevel = level;
+      const shot = cameraShot(mode, level);
       controls.minDistance = 0.2;
       controls.maxDistance = 22;
       flight = {
         fromPos: camera.position.clone(),
-        viaPos: entry ? entry.via : new THREE.Vector3(0, exitY + 1.15, 3.4),
-        toPos: entry ? entry.inside : OUTSIDE_POSITION.clone(),
+        viaPos: shot.via,
+        toPos: shot.to,
         fromTarget: controls.target.clone(),
-        viaTarget: entry
-          ? entry.opening
-          : new THREE.Vector3(0, exitY + 0.7, 1.25),
-        toTarget: entry ? entry.look : OUTSIDE_TARGET.clone(),
+        viaTarget: shot.viaTarget,
+        toTarget: shot.target,
         fromFov: camera.fov,
-        toFov: entry ? 60 : 42,
+        toFov: shot.fov,
         start: performance.now(),
-        duration: reduceMotion ? 0 : 1900,
+        duration: reduceMotion ? 0 : shot.duration,
       };
       controls.enabled = false;
     };
@@ -240,9 +254,10 @@ export function ExampleScene({
       frame = window.requestAnimationFrame(renderFrame);
       const elapsed = clock.getElapsedTime();
 
-      if (selectedIdRef.current !== appliedSelection) {
-        appliedSelection = selectedIdRef.current;
-        startFlight(appliedSelection);
+      const selectionKey = `${viewRef.current}:${selectedIdRef.current ?? ""}`;
+      if (selectionKey !== appliedKey) {
+        appliedKey = selectionKey;
+        startFlight(viewRef.current, selectedIdRef.current);
       }
 
       if (flight) {
@@ -271,8 +286,7 @@ export function ExampleScene({
         camera.updateProjectionMatrix();
 
         if (progress >= 1) {
-          const inside = appliedSelection !== null;
-          setOrbitLimits(inside);
+          setOrbitLimits(viewRef.current);
           controls.enabled = true;
           flight = null;
         }
@@ -282,10 +296,6 @@ export function ExampleScene({
         const active =
           selectedIdRef.current === marker.id ||
           hoveredIdRef.current === marker.id;
-        const coreMaterial = marker.core.material;
-        if (coreMaterial instanceof THREE.MeshBasicMaterial) {
-          coreMaterial.color.set(active ? "#ffffff" : PULSE_COLOR);
-        }
         marker.core.scale.setScalar(active ? 1.4 : 1);
 
         marker.rings.forEach((ring, index) => {
@@ -306,6 +316,12 @@ export function ExampleScene({
       }
 
       const focusId = selectedIdRef.current ?? hoveredIdRef.current;
+      const open = viewRef.current !== "outside";
+      const activeStory = open
+        ? building.stories.find((story) => story.id === selectedIdRef.current)
+        : undefined;
+      const activeLevel = activeStory ? activeStory.level : -1;
+
       for (const story of building.stories) {
         const goal = focusId && story.id !== focusId ? 1 : 0;
         story.amount = reduceMotion
@@ -316,8 +332,35 @@ export function ExampleScene({
           material.color.copy(story.baseColors[index]).lerp(DIM_COLOR, shade);
         });
         story.lights.forEach((light, index) => {
-          light.intensity = story.baseIntensities[index] * (1 - story.amount * 0.88);
+          light.intensity =
+            story.baseIntensities[index] * (1 - story.amount * 0.88);
         });
+
+        const pullGoal = open && story.id === selectedIdRef.current ? 1 : 0;
+        story.pull = reduceMotion
+          ? pullGoal
+          : story.pull + (pullGoal - story.pull) * 0.055;
+        story.group.position.z = story.pull * FLOOR_PULL;
+
+        const liftGoal = story.level > activeLevel ? 1 : 0;
+        story.lift = reduceMotion
+          ? liftGoal
+          : story.lift + (liftGoal - story.lift) * 0.07;
+        story.group.position.y = story.baseY + story.lift * 0.46;
+      }
+
+      const roofGoal = open ? 1 : 0;
+      building.roofLift = reduceMotion
+        ? roofGoal
+        : building.roofLift + (roofGoal - building.roofLift) * 0.07;
+      building.roof.position.y = building.roofBaseY + building.roofLift * 0.46;
+      building.parapet.position.y =
+        building.parapetBaseY + building.roofLift * 0.46;
+
+      for (const marker of markers) {
+        const story = building.stories.find((item) => item.id === marker.id);
+        marker.group.position.z = marker.baseZ + (story?.pull ?? 0) * FLOOR_PULL;
+        marker.group.visible = viewRef.current !== "inside";
       }
 
       const anchor = anchorRefProp.current.current;
@@ -325,8 +368,11 @@ export function ExampleScene({
       const anchorHotspot = anchorId
         ? FLOOR_HOTSPOTS.find((hotspot) => hotspot.id === anchorId)
         : undefined;
-      if (anchor && anchorHotspot) {
-        anchorPoint.set(...anchorHotspot.position).project(camera);
+      const anchorMarker = anchorId
+        ? markers.find((marker) => marker.id === anchorId)
+        : undefined;
+      if (anchor && anchorHotspot && anchorMarker) {
+        anchorPoint.copy(anchorMarker.group.position).project(camera);
         const width = container.clientWidth;
         const height = container.clientHeight;
         const x = (anchorPoint.x * 0.5 + 0.5) * width;
@@ -396,8 +442,18 @@ export function ExampleScene({
           : [object.material];
         for (const material of list) materials.add(material);
       });
+      const textures = new Set<THREE.Texture>();
+      for (const material of materials) {
+        if (
+          material instanceof THREE.MeshStandardMaterial &&
+          material.map
+        ) {
+          textures.add(material.map);
+        }
+      }
       for (const geometry of geometries) geometry.dispose();
       for (const material of materials) material.dispose();
+      for (const texture of textures) texture.dispose();
 
       renderer.dispose();
       renderer.domElement.remove();
@@ -407,20 +463,6 @@ export function ExampleScene({
   return <div ref={containerRef} className="h-full w-full" />;
 }
 
-const ENTRIES: Record<
-  FloorHotspot["id"],
-  {
-    via: THREE.Vector3;
-    opening: THREE.Vector3;
-    inside: THREE.Vector3;
-    look: THREE.Vector3;
-  }
-> = {
-  ground: apartmentEntry(0),
-  first: apartmentEntry(1),
-  second: apartmentEntry(2),
-};
-
 function apartmentEntry(level: number) {
   const y = level * FLOOR_HEIGHT;
   return {
@@ -428,6 +470,40 @@ function apartmentEntry(level: number) {
     opening: new THREE.Vector3(0, y + 0.7, FACADE_Z),
     inside: new THREE.Vector3(0.08, y + 0.62, 0.4),
     look: new THREE.Vector3(0, y + 0.48, -0.75),
+  };
+}
+
+function cameraShot(mode: FloorView, level: number) {
+  const y = level * FLOOR_HEIGHT;
+  if (mode === "extracted") {
+    return {
+      via: new THREE.Vector3(1.1, y + 2.05, FLOOR_PULL + 2.4),
+      to: new THREE.Vector3(2.05, y + 1.22, FLOOR_PULL + 3.7),
+      viaTarget: new THREE.Vector3(0, y + 0.72, FLOOR_PULL + 0.35),
+      target: new THREE.Vector3(0, y + 0.58, FLOOR_PULL + 0.05),
+      fov: 34,
+      duration: 1500,
+    };
+  }
+  if (mode === "inside") {
+    const entry = apartmentEntry(level);
+    const shift = new THREE.Vector3(0, 0, FLOOR_PULL);
+    return {
+      via: entry.via.clone().add(shift),
+      to: entry.inside.clone().add(shift),
+      viaTarget: entry.opening.clone().add(shift),
+      target: entry.look.clone().add(shift),
+      fov: 60,
+      duration: 1600,
+    };
+  }
+  return {
+    via: new THREE.Vector3(2.4, y + 1.7, FLOOR_PULL + 1.1),
+    to: OUTSIDE_POSITION.clone(),
+    viaTarget: new THREE.Vector3(0, y + 0.65, 1.2),
+    target: OUTSIDE_TARGET.clone(),
+    fov: 42,
+    duration: 1300,
   };
 }
 
@@ -666,55 +742,126 @@ const DIM_COLOR = new THREE.Color("#101412");
 
 type StoryFocus = {
   id: FloorHotspot["id"];
+  level: number;
+  group: THREE.Group;
+  baseY: number;
   materials: Array<THREE.MeshStandardMaterial | THREE.MeshBasicMaterial>;
   lights: THREE.PointLight[];
   baseColors: THREE.Color[];
   baseIntensities: number[];
   amount: number;
+  pull: number;
+  lift: number;
 };
+
+function createFacadeTexture(kind: "stone" | "wood"): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  if (kind === "stone") {
+    context.fillStyle = "#cfc6b8";
+    context.fillRect(0, 0, 256, 256);
+    const slabs = [
+      [0, 0, 128, 86],
+      [128, 0, 128, 86],
+      [0, 86, 168, 84],
+      [168, 86, 88, 84],
+      [0, 170, 96, 86],
+      [96, 170, 160, 86],
+    ] as const;
+    for (const [x, y, width, height] of slabs) {
+      const tone = 186 + Math.floor(Math.random() * 28);
+      context.fillStyle = `rgb(${tone}, ${tone - 6}, ${tone - 16})`;
+      context.fillRect(x + 2, y + 2, width - 4, height - 4);
+    }
+    context.strokeStyle = "rgba(72, 66, 58, 0.45)";
+    context.lineWidth = 3;
+    context.strokeRect(1, 1, 254, 254);
+  } else {
+    context.fillStyle = "#8d5a34";
+    context.fillRect(0, 0, 256, 256);
+    for (let x = 0; x < 256; x += 1) {
+      const grain = 118 + Math.sin(x * 0.17) * 22 + Math.sin(x * 0.05) * 10;
+      context.fillStyle = `rgb(${grain + 28}, ${grain * 0.62}, ${grain * 0.32})`;
+      context.fillRect(x, 0, 1, 256);
+    }
+    context.fillStyle = "rgba(42, 24, 12, 0.55)";
+    for (let x = 21; x < 256; x += 22) {
+      context.fillRect(x, 0, 2, 256);
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.anisotropy = 4;
+  return texture;
+}
 
 function createBuilding() {
   const group = new THREE.Group();
   const stories: StoryFocus[] = [];
+  const stoneMap = createFacadeTexture("stone");
+  const woodMap = createFacadeTexture("wood");
   const walls = new THREE.MeshStandardMaterial({
-    color: "#efe6d6",
-    roughness: 0.78,
+    map: stoneMap,
+    color: "#e4ddd2",
+    roughness: 0.9,
+    metalness: 0.02,
     side: THREE.DoubleSide,
   });
   const trim = new THREE.MeshStandardMaterial({
-    color: "#cbbba6",
-    roughness: 0.7,
+    map: stoneMap,
+    color: "#d5cdc0",
+    roughness: 0.86,
   });
   const floorWood = new THREE.MeshStandardMaterial({
     color: "#a56b45",
     roughness: 0.7,
   });
   const wood = new THREE.MeshStandardMaterial({
-    color: "#6b3f2a",
-    roughness: 0.72,
+    map: woodMap,
+    color: "#c4895a",
+    roughness: 0.62,
   });
   const glass = new THREE.MeshStandardMaterial({
-    color: "#9ec4d4",
-    roughness: 0.08,
-    metalness: 0.04,
+    color: "#d7e7ef",
+    roughness: 0.05,
+    metalness: 0.08,
     transparent: true,
-    opacity: 0.28,
+    opacity: 0.32,
     depthWrite: false,
     side: THREE.DoubleSide,
   });
-  const roofMaterial = new THREE.MeshStandardMaterial({
-    color: "#8d5a4a",
-    roughness: 0.72,
-  });
-  const concrete = new THREE.MeshStandardMaterial({
-    color: "#d9d0c2",
-    roughness: 0.74,
-  });
-  const rail = new THREE.MeshStandardMaterial({
-    color: "#efe6d6",
-    roughness: 0.55,
+  const glassBacking = new THREE.MeshStandardMaterial({
+    color: "#1a2228",
+    roughness: 0.42,
     metalness: 0.18,
   });
+  const roofMaterial = new THREE.MeshStandardMaterial({
+    color: "#3a424a",
+    roughness: 1,
+    metalness: 0,
+  });
+  const concrete = new THREE.MeshStandardMaterial({
+    map: stoneMap,
+    color: "#ddd6cb",
+    roughness: 0.84,
+  });
+  const metal = new THREE.MeshStandardMaterial({
+    color: "#2b3238",
+    roughness: 0.32,
+    metalness: 0.84,
+  });
+  const rail = metal.clone();
   const tableTop = new THREE.MeshStandardMaterial({
     color: "#d7c4a3",
     roughness: 0.55,
@@ -731,7 +878,9 @@ function createBuilding() {
       floorWood: floorWood.clone(),
       wood: wood.clone(),
       glass: glass.clone(),
+      glassBacking: glassBacking.clone(),
       concrete: concrete.clone(),
+      metal: metal.clone(),
       rail: rail.clone(),
       tableTop: tableTop.clone(),
       sofaFabric: sofaFabric.clone(),
@@ -748,23 +897,62 @@ function createBuilding() {
   floorWood.dispose();
   wood.dispose();
   glass.dispose();
+  glassBacking.dispose();
   concrete.dispose();
+  metal.dispose();
   rail.dispose();
   tableTop.dispose();
   sofaFabric.dispose();
 
+  const roofBaseY = FLOOR_HEIGHT * 3 + 0.06;
+  const parapetBaseY = FLOOR_HEIGHT * 3 + 0.22;
   const roof = new THREE.Mesh(new THREE.BoxGeometry(3.05, 0.12, 2.35), roofMaterial);
-  roof.position.set(0, FLOOR_HEIGHT * 3 + 0.06, 0.02);
+  roof.position.set(0, roofBaseY, 0.02);
   roof.castShadow = true;
   roof.receiveShadow = true;
   group.add(roof);
 
   const parapet = new THREE.Mesh(new THREE.BoxGeometry(3.05, 0.22, 0.08), trim);
-  parapet.position.set(0, FLOOR_HEIGHT * 3 + 0.22, FACADE_Z + 0.02);
+  parapet.position.set(0, parapetBaseY, FACADE_Z + 0.02);
   parapet.castShadow = true;
   group.add(parapet);
+  addRoofLamps(roof);
 
-  return { group, stories };
+  return { group, stories, roof, parapet, roofBaseY, parapetBaseY, roofLift: 0 };
+}
+
+function addRoofLamps(roof: THREE.Object3D) {
+  const housing = new THREE.MeshStandardMaterial({
+    color: "#2b3238",
+    roughness: 0.34,
+    metalness: 0.8,
+  });
+  const glow = new THREE.MeshBasicMaterial({ color: "#ffe7c2" });
+  const corners = [
+    { x: 1.48, z: 0.78, yaw: Math.PI / 2 },
+    { x: 1.48, z: -0.82, yaw: Math.PI / 2 },
+    { x: -1.48, z: 0.78, yaw: -Math.PI / 2 },
+    { x: -1.48, z: -0.82, yaw: -Math.PI / 2 },
+  ];
+
+  for (const corner of corners) {
+    const lamp = new THREE.Group();
+    lamp.position.set(corner.x, -0.55, corner.z);
+    lamp.rotation.y = corner.yaw;
+
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, 0.03), housing);
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.1), housing);
+    arm.position.z = 0.06;
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.05, 0.1), housing);
+    head.position.set(0, -0.02, 0.12);
+    const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 0.07), glow);
+    bulb.position.set(0, -0.055, 0.12);
+    const light = new THREE.PointLight("#ffe0b8", 0.8, 1.6, 2);
+    light.position.set(0, -0.14, 0.14);
+
+    lamp.add(plate, arm, head, bulb, light);
+    roof.add(lamp);
+  }
 }
 
 function collectStoryFocus(
@@ -795,11 +983,16 @@ function collectStoryFocus(
 
   return {
     id,
+    level: story.position.y / FLOOR_HEIGHT,
+    group: story,
+    baseY: story.position.y,
     materials,
     lights,
     baseColors: materials.map((material) => material.color.clone()),
     baseIntensities: lights.map((light) => light.intensity),
     amount: 0,
+    pull: 0,
+    lift: 0,
   };
 }
 
@@ -808,54 +1001,191 @@ type StoryMaterials = {
   floorWood: THREE.Material;
   wood: THREE.Material;
   glass: THREE.Material;
+  glassBacking: THREE.Material;
   concrete: THREE.Material;
+  metal: THREE.Material;
   rail: THREE.Material;
   tableTop: THREE.Material;
   sofaFabric: THREE.Material;
   rug: THREE.Material;
 };
 
+function addWindow(
+  parent: THREE.Group,
+  materials: StoryMaterials,
+  width: number,
+  height: number,
+  position: readonly [number, number, number],
+  facing: "front" | "side",
+) {
+  const [x, y, z] = position;
+  const frame = 0.032;
+  const outward = facing === "side" ? Math.sign(x) || 1 : 1;
+
+  if (facing === "front") {
+    const backing = new THREE.Mesh(
+      new THREE.BoxGeometry(width, height, 0.02),
+      materials.glassBacking,
+    );
+    backing.position.set(x, y, z - 0.012);
+    parent.add(backing);
+
+    const pane = new THREE.Mesh(
+      new THREE.BoxGeometry(width - frame * 2, height - frame * 2, 0.012),
+      materials.glass,
+    );
+    pane.position.set(x, y, z + 0.012);
+    parent.add(pane);
+
+    const bars = [
+      [width + frame, frame, 0.04, x, y + height / 2, z + 0.02],
+      [width + frame, frame, 0.04, x, y - height / 2, z + 0.02],
+      [frame, height + frame, 0.04, x - width / 2, y, z + 0.02],
+      [frame, height + frame, 0.04, x + width / 2, y, z + 0.02],
+    ] as const;
+    for (const [barWidth, barHeight, depth, barX, barY, barZ] of bars) {
+      const bar = new THREE.Mesh(
+        new THREE.BoxGeometry(barWidth, barHeight, depth),
+        materials.metal,
+      );
+      bar.position.set(barX, barY, barZ);
+      bar.castShadow = true;
+      parent.add(bar);
+    }
+    return;
+  }
+
+  const backing = new THREE.Mesh(
+    new THREE.BoxGeometry(0.02, height, width),
+    materials.glassBacking,
+  );
+  backing.position.set(x - outward * 0.012, y, z);
+  parent.add(backing);
+
+  const pane = new THREE.Mesh(
+    new THREE.BoxGeometry(0.012, height - frame * 2, width - frame * 2),
+    materials.glass,
+  );
+  pane.position.set(x + outward * 0.012, y, z);
+  parent.add(pane);
+
+  const bars = [
+    [0.04, frame, width + frame, x + outward * 0.02, y + height / 2, z],
+    [0.04, frame, width + frame, x + outward * 0.02, y - height / 2, z],
+    [0.04, height + frame, frame, x + outward * 0.02, y, z - width / 2],
+    [0.04, height + frame, frame, x + outward * 0.02, y, z + width / 2],
+  ] as const;
+  for (const [depth, barHeight, barWidth, barX, barY, barZ] of bars) {
+    const bar = new THREE.Mesh(
+      new THREE.BoxGeometry(depth, barHeight, barWidth),
+      materials.metal,
+    );
+    bar.position.set(barX, barY, barZ);
+    bar.castShadow = true;
+    parent.add(bar);
+  }
+}
+
+function addMetalBar(
+  parent: THREE.Group,
+  material: THREE.Material,
+  size: readonly [number, number, number],
+  position: readonly [number, number, number],
+) {
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+  bar.position.set(...position);
+  bar.castShadow = true;
+  parent.add(bar);
+}
+
+function addFrontFacade(story: THREE.Group, materials: StoryMaterials) {
+  const frame = 0.04;
+  const metalZ = FACADE_Z + 0.02;
+  const glassZ = FACADE_Z - 0.01;
+  const doorTop = 1.05;
+  const columns = [-1.4, -0.86, -0.32, 0.32, 0.86, 1.4];
+
+  addMetalBar(story, materials.metal, [2.8, frame, 0.05], [0, frame / 2, metalZ]);
+  addMetalBar(
+    story,
+    materials.metal,
+    [2.8, frame, 0.05],
+    [0, FLOOR_HEIGHT - frame / 2, metalZ],
+  );
+  addMetalBar(
+    story,
+    materials.metal,
+    [frame, FLOOR_HEIGHT, 0.05],
+    [-1.4 + frame / 2, FLOOR_HEIGHT / 2, metalZ],
+  );
+  addMetalBar(
+    story,
+    materials.metal,
+    [frame, FLOOR_HEIGHT, 0.05],
+    [1.4 - frame / 2, FLOOR_HEIGHT / 2, metalZ],
+  );
+  addMetalBar(story, materials.metal, [2.8, frame, 0.05], [0, doorTop, metalZ]);
+  addMetalBar(
+    story,
+    materials.metal,
+    [frame, doorTop, 0.05],
+    [-0.32, doorTop / 2, metalZ],
+  );
+  addMetalBar(
+    story,
+    materials.metal,
+    [frame, doorTop, 0.05],
+    [0.32, doorTop / 2, metalZ],
+  );
+  for (const x of [-0.86, 0.86]) {
+    addMetalBar(
+      story,
+      materials.metal,
+      [frame, FLOOR_HEIGHT, 0.05],
+      [x, FLOOR_HEIGHT / 2, metalZ],
+    );
+  }
+
+  for (let index = 0; index < columns.length - 1; index += 1) {
+    const x0 = columns[index];
+    const x1 = columns[index + 1];
+    const isDoor = index === 2;
+    const rows = isDoor
+      ? [[doorTop, FLOOR_HEIGHT]]
+      : [
+          [0, doorTop],
+          [doorTop, FLOOR_HEIGHT],
+        ];
+    for (const [y0, y1] of rows) {
+      const pane = new THREE.Mesh(
+        new THREE.BoxGeometry(x1 - x0 - frame, y1 - y0 - frame, 0.012),
+        materials.glass,
+      );
+      pane.position.set((x0 + x1) / 2, (y0 + y1) / 2, glassZ);
+      story.add(pane);
+    }
+  }
+
+  const door = new THREE.Mesh(
+    new THREE.BoxGeometry(0.56, 0.98, 0.04),
+    materials.wood,
+  );
+  door.castShadow = true;
+  const handle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.02, 0.16, 0.02),
+    materials.metal,
+  );
+
+  door.position.set(0, 0.51, glassZ);
+  handle.position.set(0.2, 0.52, glassZ + 0.03);
+  story.add(door, handle);
+}
+
 function createStory(level: number, materials: StoryMaterials) {
   const story = new THREE.Group();
   story.position.y = level * FLOOR_HEIGHT;
 
-  const frontShape = new THREE.Shape();
-  frontShape.moveTo(-1.4, 0);
-  frontShape.lineTo(1.4, 0);
-  frontShape.lineTo(1.4, FLOOR_HEIGHT);
-  frontShape.lineTo(-1.4, FLOOR_HEIGHT);
-  frontShape.closePath();
-
-  const doorHole = new THREE.Path();
-  doorHole.moveTo(-0.32, 0);
-  doorHole.lineTo(-0.32, 1.05);
-  doorHole.lineTo(0.32, 1.05);
-  doorHole.lineTo(0.32, 0);
-  frontShape.holes.push(doorHole);
-
-  const frontWall = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(frontShape, { depth: 0.1, bevelEnabled: false }),
-    materials.walls,
-  );
-  frontWall.position.z = FACADE_Z - 0.1;
-  frontWall.castShadow = true;
-  frontWall.receiveShadow = true;
-  story.add(frontWall);
-
-  for (const x of [-0.92, 0.92]) {
-    const frame = new THREE.Mesh(
-      new THREE.BoxGeometry(0.5, 0.56, 0.04),
-      materials.concrete,
-    );
-    frame.position.set(x, 0.72, FACADE_Z - 0.02);
-    story.add(frame);
-    const pane = new THREE.Mesh(
-      new THREE.BoxGeometry(0.4, 0.46, 0.02),
-      materials.glass,
-    );
-    pane.position.set(x, 0.72, FACADE_Z + 0.02);
-    story.add(pane);
-  }
+  addFrontFacade(story, materials);
 
   const side = new THREE.Mesh(
     new THREE.BoxGeometry(0.1, FLOOR_HEIGHT, 2.13),
@@ -871,12 +1201,7 @@ function createStory(level: number, materials: StoryMaterials) {
 
   for (const x of [-1.46, 1.46]) {
     for (const z of [-0.35, 0.42]) {
-      const pane = new THREE.Mesh(
-        new THREE.BoxGeometry(0.03, 0.42, 0.4),
-        materials.glass,
-      );
-      pane.position.set(x, 0.72, z);
-      story.add(pane);
+      addWindow(story, materials, 0.38, 0.46, [x, 0.72, z], "side");
     }
   }
 
@@ -930,30 +1255,16 @@ function createStory(level: number, materials: StoryMaterials) {
   sofa.receiveShadow = true;
   story.add(sofa);
 
-  const roomLight = new THREE.PointLight("#ffe0b8", 1.5, 4.2, 2);
-  roomLight.position.set(0, 1.05, -0.15);
+  const roomLight = new THREE.PointLight(
+    "#ffe0b8",
+    level === 2 ? 0.55 : 1.5,
+    level === 2 ? 1.8 : 2.6,
+    2,
+  );
+  roomLight.position.set(0, level === 2 ? 0.42 : 0.7, -0.45);
   story.add(roomLight);
 
-  const lamp = new THREE.Mesh(
-    new THREE.SphereGeometry(0.05, 12, 10),
-    new THREE.MeshBasicMaterial({ color: "#ffe7c2" }),
-  );
-  lamp.position.copy(roomLight.position);
-  story.add(lamp);
-
   if (level === 0) {
-    const doorPivot = new THREE.Group();
-    doorPivot.position.set(-0.32, 0, FACADE_Z - 0.02);
-    doorPivot.rotation.y = 1.15;
-    const door = new THREE.Mesh(
-      new THREE.BoxGeometry(0.58, 1.02, 0.04),
-      materials.wood,
-    );
-    door.position.set(0.29, 0.51, 0);
-    door.castShadow = true;
-    doorPivot.add(door);
-    story.add(doorPivot);
-
     const step = new THREE.Mesh(
       new THREE.BoxGeometry(0.95, 0.08, 0.46),
       materials.concrete,
@@ -963,15 +1274,9 @@ function createStory(level: number, materials: StoryMaterials) {
     step.receiveShadow = true;
     story.add(step);
   } else {
-    const pane = new THREE.Mesh(
-      new THREE.BoxGeometry(0.58, 0.98, 0.02),
-      materials.glass,
-    );
-    pane.position.set(0, 0.52, FACADE_Z + 0.02);
-    story.add(pane);
-
+    const balconyWidth = 2.9;
     const slab = new THREE.Mesh(
-      new THREE.BoxGeometry(1.25, 0.06, 0.64),
+      new THREE.BoxGeometry(balconyWidth, 0.06, 0.64),
       materials.concrete,
     );
     slab.position.set(0, 0.06, FACADE_Z + 0.32);
@@ -979,16 +1284,18 @@ function createStory(level: number, materials: StoryMaterials) {
     slab.receiveShadow = true;
     story.add(slab);
 
-    const railBar = new THREE.Mesh(
-      new THREE.BoxGeometry(1.25, 0.04, 0.04),
-      materials.rail,
-    );
-    railBar.position.set(0, 0.5, FACADE_Z + 0.62);
-    story.add(railBar);
+    for (const y of [0.28, 0.5]) {
+      const railBar = new THREE.Mesh(
+        new THREE.BoxGeometry(balconyWidth, 0.025, 0.025),
+        materials.rail,
+      );
+      railBar.position.set(0, y, FACADE_Z + 0.62);
+      story.add(railBar);
+    }
 
-    for (const x of [-0.56, 0, 0.56]) {
+    for (const x of [-1.32, -0.88, -0.44, 0, 0.44, 0.88, 1.32]) {
       const post = new THREE.Mesh(
-        new THREE.BoxGeometry(0.04, 0.46, 0.04),
+        new THREE.BoxGeometry(0.025, 0.46, 0.025),
         materials.rail,
       );
       post.position.set(x, 0.28, FACADE_Z + 0.62);
@@ -1005,7 +1312,7 @@ function createMarker(hotspot: FloorHotspot): Marker {
 
   const core = new THREE.Mesh(
     new THREE.SphereGeometry(0.07, 20, 16),
-    new THREE.MeshBasicMaterial({ color: PULSE_COLOR }),
+    new THREE.MeshBasicMaterial({ color: PIN_COLOR }),
   );
   group.add(core);
 
@@ -1035,5 +1342,5 @@ function createMarker(hotspot: FloorHotspot): Marker {
     return ring;
   });
 
-  return { id: hotspot.id, group, rings, core, hit };
+  return { id: hotspot.id, group, baseZ: hotspot.position[2], rings, core, hit };
 }

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   FLOOR_HOTSPOTS,
   type FloorHotspot,
+  type FloorView,
 } from "@/features/scene/data/house-hotspots";
 
 const ExampleScene = dynamic(
@@ -25,6 +26,7 @@ export function SceneView({ active = true, resetToken = 0 }: SceneViewProps) {
   const [selectedId, setSelectedId] = useState<FloorHotspot["id"] | null>(
     null,
   );
+  const [view, setView] = useState<FloorView>("outside");
   const [hoveredId, setHoveredId] = useState<FloorHotspot["id"] | null>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const selected =
@@ -35,16 +37,42 @@ export function SceneView({ active = true, resetToken = 0 }: SceneViewProps) {
 
   useEffect(() => {
     setSelectedId(null);
+    setView("outside");
     setHoveredId(null);
   }, [resetToken]);
+
+  function selectFloor(id: FloorHotspot["id"] | null) {
+    if (id === null) {
+      setSelectedId(null);
+      setView("outside");
+      return;
+    }
+    if (id === selectedId && view === "extracted") {
+      setView("inside");
+      return;
+    }
+    if (id === selectedId) return;
+    setSelectedId(id);
+    setView("extracted");
+  }
+
+  function stepBack() {
+    if (view === "inside") {
+      setView("extracted");
+      return;
+    }
+    setSelectedId(null);
+    setView("outside");
+  }
 
   return (
     <div className="relative h-full w-full">
       <ExampleScene
         selectedId={selectedId}
+        view={view}
         hoveredId={callout?.id ?? null}
         anchorRef={anchorRef}
-        onSelect={setSelectedId}
+        onSelect={selectFloor}
         onHover={setHoveredId}
         active={active}
       />
@@ -74,16 +102,29 @@ export function SceneView({ active = true, resetToken = 0 }: SceneViewProps) {
               </p>
               <h2 className="mt-1 text-lg font-semibold">{selected.title}</h2>
               <p className="mt-1 text-sm leading-relaxed text-[#d7e0d4]">
-                {selected.detail}
+                {view === "inside"
+                  ? "Kamera je u stanu. Nazad vraća pogled na izvučeni sprat."
+                  : "Sprat je izvučen ispred zgrade. Klikni tačku ponovo da uđeš unutra."}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setSelectedId(null)}
-              className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-sm whitespace-nowrap text-[#f4efe4] transition hover:bg-white/10"
-            >
-              Back outside
-            </button>
+            <div className="flex shrink-0 flex-col gap-2">
+              {view === "extracted" ? (
+                <button
+                  type="button"
+                  onClick={() => setView("inside")}
+                  className="rounded-full bg-[#f4efe4] px-3 py-1 text-sm whitespace-nowrap text-[#1c2420] transition hover:bg-white"
+                >
+                  Uđi unutra
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={stepBack}
+                className="rounded-full border border-white/15 px-3 py-1 text-sm whitespace-nowrap text-[#f4efe4] transition hover:bg-white/10"
+              >
+                {view === "inside" ? "Nazad na sprat" : "Vrati sprat"}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
