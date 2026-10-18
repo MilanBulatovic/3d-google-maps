@@ -202,6 +202,8 @@ export function InteractiveMap() {
   const locationIds = locations.map((location) => location.id);
   const selected = locations.find((location) => location.id === selectedId) ?? null;
   const cardLocation = worldSelection ?? selected;
+  const detailsLocation =
+    worldSelection ?? (selected?.pinStyle === "model" ? null : selected);
   function openGallery() {
     if (!cardLocation) {
       return;
@@ -542,7 +544,7 @@ export function InteractiveMap() {
 
         {calloutLocation ? (
           <SettledPinCallout
-            key={calloutLocation.id}
+            key={`callout-${calloutLocation.id}`}
             location={calloutLocation}
             onClose={() => {
               cancelReveal();
@@ -556,20 +558,24 @@ export function InteractiveMap() {
           hasSelection={cardLocation !== null}
           mode={mode}
           optionsOpen={optionsOpen}
-          lift={worldSelection ? detailsLift : "none"}
+          lift={detailsLocation ? detailsLift : "none"}
           onShowOverview={showOverview}
           onRecenter={recenter}
           onModeChange={setMode}
           onNudgeHeading={nudgeHeading}
         />
 
-        {worldSelection ? (
+        {detailsLocation ? (
           <LocationInfoCard
-            key={worldSelection.id}
-            location={worldSelection}
+            key={`details-${detailsLocation.id}`}
+            location={detailsLocation}
             onClose={clearSelection}
             onShowOverview={showOverview}
-            onViewProperty={openGallery}
+            onViewProperty={
+              getPropertyByLocationId(detailsLocation.id) || detailsLocation.imageUrl
+                ? openGallery
+                : undefined
+            }
             onPresentationChange={handlePresentationChange}
             escapeDisabled={galleryProperty !== null}
           />

@@ -34,6 +34,15 @@ const SELECTED_PIN = {
   collisionPriority: 20,
 } as const;
 
+const ONE_BRANCH_PIN = {
+  background: "#662E8F",
+  glyphColor: "#F7B019",
+} as const;
+
+function isOneBranch(category: string): boolean {
+  return category === "Poslovnica";
+}
+
 export type MarkerRecord = {
   id: string;
   category: string;
@@ -48,6 +57,10 @@ function pinBackground(
   category: string,
   selected: boolean,
 ): string {
+  if (isOneBranch(category)) {
+    return ONE_BRANCH_PIN.background;
+  }
+
   if (selected) {
     return SELECTED_PIN.background;
   }
@@ -63,6 +76,14 @@ function pinBackground(
   return CATEGORY_COLORS[category] ?? "#1c1917";
 }
 
+function pinGlyph(category: string, selected: boolean): string {
+  if (isOneBranch(category)) {
+    return ONE_BRANCH_PIN.glyphColor;
+  }
+
+  return selected ? SELECTED_PIN.glyphColor : UNSELECTED_PIN.glyphColor;
+}
+
 export function createLocationMarker(
   location: MapLocation,
   runtime: Pick<Maps3dRuntime, "Marker3DInteractiveElement" | "PinElement">,
@@ -71,7 +92,7 @@ export function createLocationMarker(
   const pin = new runtime.PinElement({
     background: pinBackground(location.pinStyle, location.category, false),
     borderColor: UNSELECTED_PIN.borderColor,
-    glyphColor: UNSELECTED_PIN.glyphColor,
+    glyphColor: pinGlyph(location.category, false),
     scale: location.pinStyle === "model" ? 1.2 : UNSELECTED_PIN.scale,
   });
 
@@ -121,7 +142,7 @@ export function applyMarkerAppearance(
     selected,
   );
   record.pin.borderColor = appearance.borderColor;
-  record.pin.glyphColor = appearance.glyphColor;
+  record.pin.glyphColor = pinGlyph(record.category, selected);
   record.pin.scale = selected
     ? appearance.scale
     : record.pinStyle === "model"

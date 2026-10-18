@@ -18,10 +18,17 @@ describe("coordinate validation", () => {
     expect(isValidCoordinate(Number.POSITIVE_INFINITY, 0)).toBe(false);
   });
 
-  it("loads three plain pins and three building pins", () => {
-    expect(MAP_PINS.filter((pin) => pin.pinStyle === "plain")).toHaveLength(3);
+  it("loads plain pins, building pins, and One branches", () => {
+    expect(MAP_PINS.filter((pin) => pin.pinStyle === "plain")).toHaveLength(18);
     expect(MAP_PINS.filter((pin) => pin.pinStyle === "model")).toHaveLength(3);
+    expect(MAP_PINS.filter((pin) => pin.category === "Poslovnica")).toHaveLength(18);
     expect(new Set(MAP_PINS.map((pin) => pin.id)).size).toBe(MAP_PINS.length);
+
+    const centar = MAP_PINS.find((pin) => pin.id === "one-centar");
+    expect(centar?.address).toBe("Trg Republike bb, Podgorica");
+    expect(centar?.metadata?.Telefon).toBe("1700");
+    expect(centar?.metadata?.["E-mail"]).toBe("korisnickiservis@1.me");
+    expect(centar?.metadata?.["Pon–pet"]).toBe("08:00–20:00*");
   });
 
   it("loads Montenegro places with unique ids", () => {

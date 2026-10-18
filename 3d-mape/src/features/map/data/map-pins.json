@@ -1,25 +1,5 @@
 [
   {
-    "id": "most-milenijum",
-    "name": "Most Milenijum",
-    "category": "Lokacija",
-    "description": "Lazni pin na mostu preko Morače. Nema ulazak u zgradu.",
-    "latitude": 42.445131,
-    "longitude": 19.258355,
-    "address": "13. jula, Podgorica",
-    "pinStyle": "plain"
-  },
-  {
-    "id": "park-petrovic",
-    "name": "Park Petrović",
-    "category": "Lokacija",
-    "description": "Lazni pin u parku na zapadnoj strani centra.",
-    "latitude": 42.4375,
-    "longitude": 19.2475,
-    "address": "Park Petrović, Podgorica",
-    "pinStyle": "plain"
-  },
-  {
     "id": "zgrada-moraca",
     "name": "Zgrada na Morači",
     "category": "Zgrada",
@@ -48,5 +28,351 @@
     "longitude": 19.2634,
     "address": "Stara varoš, Podgorica",
     "pinStyle": "model"
+  },
+  {
+    "id": "one-bar",
+    "name": "One Bar",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Baru.",
+    "latitude": 42.09795,
+    "longitude": 19.09681,
+    "address": "Jovana Stojanovića bb, Bar",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Bar",
+      "Pon–pet": "08:00–20:00*",
+      "Subota": "09:00–20:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-berane",
+    "name": "One Berane",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Beranama.",
+    "latitude": 42.84463,
+    "longitude": 19.87391,
+    "address": "Mojsija Zečevića 9, Berane",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Berane",
+      "Pon–pet": "08:00–18:00*",
+      "Subota": "09:00–18:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-bijelo-polje",
+    "name": "One Bijelo Polje",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Bijelom Polju.",
+    "latitude": 43.03438,
+    "longitude": 19.74734,
+    "address": "Ulica Slobode 10, Bijelo Polje",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Bijelo Polje",
+      "Pon–pet": "09:00–16:00*",
+      "Subota": "09:00–14:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-budva",
+    "name": "One Budva",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Budvi.",
+    "latitude": 42.28325,
+    "longitude": 18.83678,
+    "address": "Mediteranska bb, Budva",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Budva",
+      "Pon–pet": "08:00–20:00*",
+      "Subota": "09:00–18:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-cetinje",
+    "name": "One Cetinje",
+    "category": "Poslovnica",
+    "description": "Poslovnica One na Cetinju.",
+    "latitude": 42.38794,
+    "longitude": 18.92546,
+    "address": "Njegoševa 89, Cetinje",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Cetinje",
+      "Pon–pet": "09:00–14:00, 14:30–16:00*",
+      "Subota": "09:00–14:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-danilovgrad",
+    "name": "One Danilovgrad",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Danilovgradu, u TC Voli.",
+    "latitude": 42.54666,
+    "longitude": 19.10069,
+    "address": "TC Voli, magistralni put Podgorica–Nikšić, Danilovgrad",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Danilovgrad",
+      "Pon–pet": "Provjeriti",
+      "Subota": "Provjeriti",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-herceg-novi",
+    "name": "One Herceg Novi",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Herceg Novom.",
+    "latitude": 42.45194,
+    "longitude": 18.53532,
+    "address": "Njegoševa 92, Herceg Novi",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Herceg Novi",
+      "Pon–pet": "08:00–20:00*",
+      "Subota": "09:00–18:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-kamelija",
+    "name": "One Kamelija",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u TC Kamelija u Kotoru.",
+    "latitude": 42.42806,
+    "longitude": 18.7695,
+    "address": "Trg Mata Petrovića, TC Kamelija, Kotor",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Kotor",
+      "Pon–pet": "09:00–22:00*",
+      "Subota": "09:00–22:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-niksic",
+    "name": "One Nikšić",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Nikšiću.",
+    "latitude": 42.77279,
+    "longitude": 18.94853,
+    "address": "Njegoševa 9, Nikšić",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Nikšić",
+      "Pon–pet": "08:00–20:00*",
+      "Subota": "09:00–20:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-pljevlja",
+    "name": "One Pljevlja",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Pljevljima.",
+    "latitude": 43.35681,
+    "longitude": 19.35676,
+    "address": "Kralja Petra I bb, Pljevlja",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Pljevlja",
+      "Pon–pet": "09:00–14:00, 14:30–16:00*",
+      "Subota": "09:00–14:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-centar",
+    "name": "One Centar",
+    "category": "Poslovnica",
+    "description": "Poslovnica One na Trgu Republike u Podgorici.",
+    "latitude": 42.44088,
+    "longitude": 19.26358,
+    "address": "Trg Republike bb, Podgorica",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Podgorica",
+      "Pon–pet": "08:00–20:00*",
+      "Subota": "09:00–20:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-moskovska",
+    "name": "One Moskovska",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Moskovskoj ulici u Podgorici.",
+    "latitude": 42.4426,
+    "longitude": 19.24841,
+    "address": "Moskovska 20, Podgorica",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Podgorica",
+      "Pon–pet": "08:00–20:00*",
+      "Subota": "09:00–20:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-big-fashion",
+    "name": "One BIG FASHION",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u BIG Fashionu u Podgorici.",
+    "latitude": 42.43756,
+    "longitude": 19.23675,
+    "address": "Bulevar Knjaza Danila bb, Podgorica",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Podgorica",
+      "Pon–pet": "10:00–22:00*",
+      "Subota": "10:00–22:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-stari-aerodrom",
+    "name": "One Stari aerodrom",
+    "category": "Poslovnica",
+    "description": "Poslovnica One na Starom aerodromu u Podgorici.",
+    "latitude": 42.42687,
+    "longitude": 19.27643,
+    "address": "Stari aerodrom, Podgorica",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Podgorica",
+      "Pon–pet": "Provjeriti",
+      "Subota": "Provjeriti",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-rimski-trg",
+    "name": "One Rimski trg",
+    "category": "Poslovnica",
+    "description": "Poslovnica One na Rimskom trgu u Podgorici.",
+    "latitude": 42.44227,
+    "longitude": 19.2456,
+    "address": "Rimski trg 4, Podgorica",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Podgorica",
+      "Pon–pet": "Provjeriti",
+      "Subota": "Provjeriti",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-rozaje",
+    "name": "One Rožaje",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Rožajama.",
+    "latitude": 42.84281,
+    "longitude": 20.16604,
+    "address": "Maršala Tita, Rožaje",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Rožaje",
+      "Pon–pet": "Provjeriti",
+      "Subota": "Provjeriti",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-tivat",
+    "name": "One Tivat",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Tivtu.",
+    "latitude": 42.43108,
+    "longitude": 18.69883,
+    "address": "II Dalmatinske bb, Tivat",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Tivat",
+      "Pon–pet": "Provjeriti",
+      "Subota": "Provjeriti",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
+  },
+  {
+    "id": "one-ulcinj",
+    "name": "One Ulcinj",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Ulcinju.",
+    "latitude": 41.92649,
+    "longitude": 19.20492,
+    "address": "Ulica 29. novembra bb, Ulcinj",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Ulcinj",
+      "Pon–pet": "Provjeriti",
+      "Subota": "Provjeriti",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me",
+      "Koordinate": "Nisu potvrđene"
+    }
   }
 ]

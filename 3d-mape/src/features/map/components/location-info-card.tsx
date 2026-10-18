@@ -57,6 +57,32 @@ function formatMetadataLabel(key: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
+function MetadataValue({ label, value }: { label: string; value: string }) {
+  if (label === "Telefon") {
+    return (
+      <a
+        className="underline decoration-[#a8a29e] underline-offset-2"
+        href={`tel:${value.replace(/\s/g, "")}`}
+      >
+        {value}
+      </a>
+    );
+  }
+
+  if (label === "E-mail") {
+    return (
+      <a
+        className="underline decoration-[#a8a29e] underline-offset-2"
+        href={`mailto:${value}`}
+      >
+        {value}
+      </a>
+    );
+  }
+
+  return value;
+}
+
 function LocationImage({
   src,
   name,
@@ -257,15 +283,21 @@ export function LocationInfoCard({
           </p>
         ) : null}
         {metadata.length > 0 ? (
-          <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-black/10 pt-3 text-sm">
-            {metadata.map(([key, value]) => (
-              <div key={key}>
-                <dt className="text-xs text-[#78716c]">
-                  {formatMetadataLabel(key)}
-                </dt>
-                <dd className="font-medium">{String(value)}</dd>
-              </div>
-            ))}
+          <dl className="space-y-2 border-t border-black/10 pt-3 text-sm">
+            {metadata.map(([key, value]) => {
+              const label = formatMetadataLabel(key);
+              return (
+                <div
+                  key={key}
+                  className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-baseline gap-x-3"
+                >
+                  <dt className="text-xs text-[#78716c]">{label}</dt>
+                  <dd className="font-medium break-words">
+                    <MetadataValue label={label} value={String(value)} />
+                  </dd>
+                </div>
+              );
+            })}
           </dl>
         ) : null}
       </div>

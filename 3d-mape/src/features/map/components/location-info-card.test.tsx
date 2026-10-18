@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { LocationInfoCard } from "@/features/map/components/location-info-card";
-import { LOCATIONS } from "@/features/map/data/locations";
+import { LOCATIONS, MAP_PINS } from "@/features/map/data/locations";
 
 vi.mock("next/image", () => ({
   default: function MockImage({ alt }: { alt: string }) {
@@ -150,6 +150,32 @@ describe("LocationInfoCard", () => {
     expect(screen.getByRole("link", { name: "Directions" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Look in detail" }));
     expect(onViewProperty).toHaveBeenCalledOnce();
+  });
+
+  it("shows branch hours, phone, and email", () => {
+    const location = MAP_PINS.find((item) => item.id === "one-centar");
+
+    if (!location) {
+      throw new Error("Expected the One Centar branch.");
+    }
+
+    render(
+      <LocationInfoCard
+        location={location}
+        onClose={() => undefined}
+        onShowOverview={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText("Trg Republike bb, Podgorica")).toBeInTheDocument();
+    expect(screen.getByText("08:00–20:00*")).toBeInTheDocument();
+    expect(screen.getByText("09:00–20:00*")).toBeInTheDocument();
+    expect(screen.getByText("Provjeriti")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "1700" })).toHaveAttribute("href", "tel:1700");
+    expect(screen.getByRole("link", { name: "korisnickiservis@1.me" })).toHaveAttribute(
+      "href",
+      "mailto:korisnickiservis@1.me",
+    );
   });
 
   it("credits OpenStreetMap on a venue from that dataset", () => {
