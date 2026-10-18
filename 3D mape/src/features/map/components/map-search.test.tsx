@@ -76,7 +76,7 @@ describe("MapSearch", () => {
     render(<SearchHarness onSelect={vi.fn()} onWorldSearchChange={onWorldSearchChange} />);
 
     expect(screen.queryByRole("combobox", { name: "Kategorija" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Mjesta" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Crna Goras" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );

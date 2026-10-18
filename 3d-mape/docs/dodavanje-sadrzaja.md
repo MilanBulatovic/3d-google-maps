@@ -118,7 +118,7 @@ Za pin `zgrada-centar` unos izgleda ovako:
 }
 ```
 
-Slike stavi u `3D mape/public/properties/`. `src` je putanja od korijena sajta, sa početnim `/`.
+Slike stavi u `3d-mape/public/properties/`. `src` je putanja od korijena sajta, sa početnim `/`.
 
 - `details` je opciono. Ako ga ima, sva četiri polja su obavezna: `price`, `area`, `bedrooms`, `bathrooms`.
 - `roomLabel` je opciono; to je natpis na slici.
