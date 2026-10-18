@@ -85,24 +85,13 @@ function MetadataValue({ label, value }: { label: string; value: string }) {
 
 function LocationImage({
   src,
-  name,
   credit,
+  onFail,
 }: {
-  src?: string;
-  name: string;
+  src: string;
   credit?: ImageCredit;
+  onFail: () => void;
 }) {
-  const [failed, setFailed] = useState(false);
-
-  if (!src || failed) {
-    return (
-      <div className="flex h-36 shrink-0 items-center justify-center bg-[#e7e5e4] text-[#57534e] sm:h-44">
-        <MapPin className="size-8" aria-hidden="true" />
-        <span className="sr-only">No photo available for {name}</span>
-      </div>
-    );
-  }
-
   return (
     <div className="relative h-36 shrink-0 bg-[#e7e5e4] sm:h-44">
       <Image
@@ -111,7 +100,7 @@ function LocationImage({
         fill
         sizes="(min-width: 768px) 22rem, 100vw"
         className="object-cover"
-        onError={() => setFailed(true)}
+        onError={onFail}
       />
       {credit ? <ImageCreditLine credit={credit} /> : null}
     </div>
@@ -128,6 +117,8 @@ export function LocationInfoCard({
 }: LocationInfoCardProps) {
   const mobile = useMobileLayout();
   const [expanded, setExpanded] = useState(!mobile);
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const showPhoto = Boolean(location.imageUrl) && !photoFailed;
   const searchUrl = buildMapsSearchUrl(location.latitude, location.longitude);
   const directionsUrl = buildMapsDirectionsUrl(
     location.latitude,
@@ -141,6 +132,15 @@ export function LocationInfoCard({
   useEffect(() => {
     setExpanded(!mobile);
   }, [mobile]);
+
+  function dismiss() {
+    if (mobile) {
+      setExpanded(false);
+      return;
+    }
+
+    onClose();
+  }
 
   useEffect(() => {
     onPresentationChange?.(mobile && !expanded ? "peek" : "sheet");
@@ -216,39 +216,46 @@ export function LocationInfoCard({
   return (
     <aside
       aria-label={`${location.name} details`}
-      className="map-panel-in pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex max-h-[46vh] flex-col overflow-hidden rounded-3xl bg-[#fffaf3]/96 text-[#1c1917] shadow-2xl shadow-black/30 ring-1 ring-black/10 sm:inset-x-auto sm:top-24 sm:right-4 sm:bottom-4 sm:max-h-none sm:w-[22rem]"
+      className="map-panel-in pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex h-auto max-h-[46vh] flex-col overflow-hidden rounded-3xl bg-[#fffaf3]/96 text-[#1c1917] shadow-2xl shadow-black/30 ring-1 ring-black/10 sm:inset-x-auto sm:top-24 sm:right-4 sm:bottom-auto sm:max-h-[calc(100dvh-8rem)] sm:w-[22rem]"
     >
-      <div className="relative shrink-0">
-        <LocationImage
-          key={location.id}
-          src={location.imageUrl}
-          name={location.name}
-          credit={location.imageCredit}
-        />
-        <Button
-          variant="icon"
-          className="absolute top-2 right-2 z-10 bg-white/90"
-          onClick={() => {
-            if (mobile) {
-              setExpanded(false);
-              return;
-            }
-
-            onClose();
-          }}
-          aria-label={mobile ? "Hide location details" : "Close location details"}
-        >
-          <X className="size-4" aria-hidden="true" />
-        </Button>
-      </div>
+      {showPhoto && location.imageUrl ? (
+        <div className="relative shrink-0">
+          <LocationImage
+            key={location.id}
+            src={location.imageUrl}
+            credit={location.imageCredit}
+            onFail={() => setPhotoFailed(true)}
+          />
+          <Button
+            variant="icon"
+            className="absolute top-2 right-2 z-10 bg-white/90"
+            onClick={dismiss}
+            aria-label={mobile ? "Hide location details" : "Close location details"}
+          >
+            <X className="size-4" aria-hidden="true" />
+          </Button>
+        </div>
+      ) : null}
       <div className="min-h-0 flex-1 space-y-3 overflow-auto p-4">
-        <div>
-          <p className="text-xs font-medium tracking-[0.14em] text-[#c2410c] uppercase">
-            {location.category}
-          </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight">
-            {location.name}
-          </h2>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-medium tracking-[0.14em] text-[#c2410c] uppercase">
+              {location.category}
+            </p>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight">
+              {location.name}
+            </h2>
+          </div>
+          {showPhoto ? null : (
+            <Button
+              variant="icon"
+              className="shrink-0 bg-white/90"
+              onClick={dismiss}
+              aria-label={mobile ? "Hide location details" : "Close location details"}
+            >
+              <X className="size-4" aria-hidden="true" />
+            </Button>
+          )}
         </div>
         <p className="text-sm leading-6 text-[#44403c]">{location.description}</p>
         {location.address ? (

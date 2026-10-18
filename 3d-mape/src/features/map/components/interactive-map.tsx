@@ -455,7 +455,8 @@ export function InteractiveMap() {
 
       <div className="pointer-events-none absolute inset-0 z-20">
         <header className="pointer-events-none absolute inset-x-0 top-0 p-3 sm:p-4">
-          <div className="pointer-events-auto mx-auto flex max-w-5xl flex-col gap-2 rounded-3xl bg-[#fffaf3]/55 p-2 shadow-lg shadow-black/20 ring-1 ring-white/40 backdrop-blur-sm sm:flex-row sm:items-center">
+          <div className="map-nav pointer-events-auto mx-auto flex max-w-5xl flex-col gap-2 rounded-3xl p-2 ring-1 ring-black/10 sm:flex-row sm:items-center">
+            <div className="map-nav-glass" aria-hidden="true" />
             <div className="flex items-center justify-between gap-2 sm:contents">
               <div className="flex items-center gap-2 px-2">
                 <span className="flex size-9 items-center justify-center rounded-full bg-[#1c1917] text-[#fffaf3]">

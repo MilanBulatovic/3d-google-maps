@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 
-import { PODGORICA_OVERVIEW } from "@/features/map/config/camera";
+import { MONTENEGRO_OVERVIEW } from "@/features/map/config/camera";
 import { useGoogleMaps3d } from "@/features/map/hooks/use-google-maps-3d";
 import {
   applyMarkerAppearance,
@@ -83,11 +83,11 @@ export function MapCanvas({
 
     let disposed = false;
     const map = new runtime.Map3DElement({
-      center: PODGORICA_OVERVIEW.center,
-      range: PODGORICA_OVERVIEW.range,
-      tilt: PODGORICA_OVERVIEW.tilt,
-      heading: PODGORICA_OVERVIEW.heading,
-      roll: PODGORICA_OVERVIEW.roll,
+      center: MONTENEGRO_OVERVIEW.center,
+      range: MONTENEGRO_OVERVIEW.range,
+      tilt: MONTENEGRO_OVERVIEW.tilt,
+      heading: MONTENEGRO_OVERVIEW.heading,
+      roll: MONTENEGRO_OVERVIEW.roll,
       mode: modeRef.current,
       gestureHandling: "GREEDY",
       defaultUIHidden: true,

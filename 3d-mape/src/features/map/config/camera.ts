@@ -21,8 +21,8 @@ export const PODGORICA_OVERVIEW: CameraTarget = {
  */
 export const MONTENEGRO_OVERVIEW: CameraTarget = {
   center: { lat: 42.71, lng: 19.37, altitude: 800 },
-  range: 260000,
-  tilt: 55,
+  range: 200000,
+  tilt: 65,
   heading: 18,
   roll: 0,
 };

@@ -106,8 +106,16 @@ describe("LocationInfoCard", () => {
     vi.unstubAllGlobals();
   });
 
-  it("shows a fallback when a place has no photo", () => {
-    const location = LOCATIONS.find((item) => item.id === "king-nikola-palace");
+  it("hides the photo area when a place has no photo", () => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    );
+    const location = LOCATIONS.find((item) => !item.imageUrl);
 
     if (!location) {
       throw new Error("Expected a location without an image.");
@@ -121,12 +129,17 @@ describe("LocationInfoCard", () => {
       />,
     );
 
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(
-      screen.getByText(`No photo available for ${location.name}`),
+      screen.getByRole("heading", { name: location.name }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Look in detail" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "Close location details" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("complementary", { name: `${location.name} details` }),
+    ).toHaveClass("h-auto");
+    vi.unstubAllGlobals();
   });
 
   it("opens the property gallery from a residence card", async () => {

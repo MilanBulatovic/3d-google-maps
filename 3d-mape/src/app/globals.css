@@ -80,34 +80,61 @@ body {
 .map-search-slot {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 560ms cubic-bezier(0.7, 0, 0.15, 1);
+  /* Delay + inverse curve so the 560ms close is the open row motion played backward. */
+  transition: grid-template-rows 560ms cubic-bezier(0.85, 0, 0.3, 1) 120ms;
 }
 
 .map-search-slot[data-open="true"] {
   grid-template-rows: 1fr;
+  transition: grid-template-rows 560ms cubic-bezier(0.7, 0, 0.15, 1);
 }
 
 .map-search-panel {
   min-height: 0;
   overflow: hidden;
   transform-origin: calc(100% - 2.75rem) 0;
-  clip-path: polygon(100% 0, 100% 0, 100% 0);
+  clip-path: polygon(100% 0, 100% 0, 100% 0, 100% 0);
   opacity: 0;
   filter: blur(12px);
   transform: rotate(-6deg) scale(0.86);
+  /* Close uses the time-reverse of each open curve, delayed so every property
+     lines up with the 680ms open sequence played backward. */
   transition:
-    clip-path 680ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 280ms ease,
-    filter 520ms ease,
-    transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
+    clip-path 680ms cubic-bezier(0.7, 0, 0.84, 0),
+    opacity 420ms cubic-bezier(0.75, 0, 0.75, 0.9) 260ms,
+    filter 520ms cubic-bezier(0.75, 0, 0.75, 0.9) 160ms,
+    transform 680ms cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 .map-search-slot[data-open="true"] .map-search-panel {
   overflow: visible;
-  clip-path: polygon(-12% -20%, 112% -8%, 108% 130%, -16% 112%);
+  clip-path: polygon(-20% -40%, 120% -40%, 120% 160%, -20% 160%);
   opacity: 1;
   filter: none;
   transform: none;
+  transition:
+    clip-path 680ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 420ms ease,
+    filter 520ms ease,
+    transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.map-nav {
+  position: relative;
+  isolation: isolate;
+}
+
+.map-nav-glass {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  background: rgb(255 250 243 / 0.72);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  clip-path: inset(0 round 1.5rem);
 }
 
 @media (min-width: 640px) {

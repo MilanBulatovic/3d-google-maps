@@ -188,10 +188,33 @@ export function MapSearch({
           autoComplete="off"
           className="w-full pr-3 pl-9"
         />
-        {showPanel ? (
+      </div>
+      <div
+        className="flex shrink-0 rounded-full bg-[#e7e5e4] p-0.5"
+        role="group"
+        aria-label="Search mode"
+      >
+        <button
+          type="button"
+          aria-pressed={!worldSearch}
+          className={`rounded-full px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c2410c] ${worldSearch ? "text-[#57534e]" : "bg-[#1c1917] text-[#fffaf3]"}`}
+          onClick={() => onWorldSearchChange?.(false)}
+        >
+          Crna Gora
+        </button>
+        {/* <button
+          type="button"
+          aria-pressed={worldSearch}
+          className={`rounded-full px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c2410c] ${worldSearch ? "bg-[#1c1917] text-[#fffaf3]" : "text-[#57534e]"}`}
+          onClick={() => onWorldSearchChange?.(true)}
+        >
+          Svijet
+        </button> */}
+      </div>
+      {showPanel ? (
           <div
             id={listId}
-            className="absolute top-[calc(100%+0.4rem)] right-0 left-0 z-40 overflow-hidden rounded-2xl bg-[#fffaf3] shadow-xl shadow-black/20 ring-1 ring-black/10"
+            className="z-40 overflow-hidden rounded-2xl bg-[#fffaf3] shadow-xl shadow-black/20 ring-1 ring-black/10 sm:absolute sm:top-[calc(100%+0.4rem)] sm:right-0 sm:left-0"
           >
             {showEmpty ? (
               <p className="px-3 py-4 text-sm text-[#57534e]">{emptyMessage}</p>
@@ -250,29 +273,6 @@ export function MapSearch({
             ) : null}
           </div>
         ) : null}
-      </div>
-      <div
-        className="flex shrink-0 rounded-full bg-[#e7e5e4] p-0.5"
-        role="group"
-        aria-label="Search mode"
-      >
-        <button
-          type="button"
-          aria-pressed={!worldSearch}
-          className={`rounded-full px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c2410c] ${worldSearch ? "text-[#57534e]" : "bg-[#1c1917] text-[#fffaf3]"}`}
-          onClick={() => onWorldSearchChange?.(false)}
-        >
-          Crna Gora
-        </button>
-        {/* <button
-          type="button"
-          aria-pressed={worldSearch}
-          className={`rounded-full px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c2410c] ${worldSearch ? "bg-[#1c1917] text-[#fffaf3]" : "text-[#57534e]"}`}
-          onClick={() => onWorldSearchChange?.(true)}
-        >
-          Svijet
-        </button> */}
-      </div>
       {/*
       <Select
         value={category}
