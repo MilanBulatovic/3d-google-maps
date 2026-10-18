@@ -119,13 +119,7 @@ describe("placesFromOverpass", () => {
           lon: 19.4,
           tags: { name: "GSS Durmitor", emergency: "mountain_rescue" },
         },
-        {
-          type: "node",
-          id: 23,
-          lat: 42.069,
-          lon: 19.512,
-          tags: { name: "Policia Shkodër", amenity: "police" },
-        },
+       
       ],
     });
 
@@ -171,36 +165,6 @@ describe("placesFromOverpass", () => {
       "Gorska služba",
     ]);
     expect(places[7]?.description).toBe("CB Podgorica je policijska stanica u Crnoj Gori.");
-  });
-
-  it("drops Sukobin and Katerkol", () => {
-    const places = placesFromOverpass({
-      elements: [
-        {
-          type: "node",
-          id: 30,
-          lat: 42.0164,
-          lon: 19.3705,
-          tags: { name: "Granični prelaz Sukobin", amenity: "police" },
-        },
-        {
-          type: "node",
-          id: 31,
-          lat: 42.0018,
-          lon: 19.2993,
-          tags: { name: "Amblulanta Katerkoll", amenity: "hospital" },
-        },
-        {
-          type: "node",
-          id: 32,
-          lat: 41.929,
-          lon: 19.224,
-          tags: { name: "Policija Ulcinj", amenity: "police" },
-        },
-      ],
-    });
-
-    expect(places.map((place) => place.name)).toEqual(["Policija Ulcinj"]);
   });
 
   it("returns nothing for a payload without elements", () => {

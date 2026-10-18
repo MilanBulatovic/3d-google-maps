@@ -1,7 +1,7 @@
 import { importLibrary } from "@googlemaps/js-api-loader";
 
 import { searchMontenegroGeocode } from "@/features/map/services/google-geocoder";
-import { loadGoogleMaps3d } from "@/features/map/services/google-maps-loader";
+import { loadGoogleMaps3d, MAP_LANGUAGE } from "@/features/map/services/google-maps-loader";
 import type { MapLocation } from "@/features/map/types/map-location";
 import { worldHitToLocation, type WorldHit } from "@/features/map/utils/world-view";
 
@@ -91,7 +91,7 @@ async function suggestWithPlaces(query: string): Promise<MapLocation[]> {
   const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
     input: query,
     includedRegionCodes: ["me"],
-    language: "sr",
+    language: MAP_LANGUAGE,
     region: "me",
     sessionToken,
   });

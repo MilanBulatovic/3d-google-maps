@@ -1,7 +1,7 @@
 "use client";
 
 import { Mountain, Search, SlidersHorizontal, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LocationInfoCard } from "@/features/map/components/location-info-card";
@@ -16,6 +16,7 @@ import { MapSearch } from "@/features/map/components/map-search";
 import { WORLD_SEARCH } from "@/features/map/config/search";
 import { MAP_PINS } from "@/features/map/data/locations";
 import { useMontenegroSearch } from "@/features/map/hooks/use-montenegro-search";
+import { useSavedSearches } from "@/features/map/hooks/use-saved-searches";
 import { useWorldSearch } from "@/features/map/hooks/use-world-search";
 import { resolveMontenegroHit } from "@/features/map/services/montenegro-search";
 import type { MapCameraController } from "@/features/map/services/map-camera-controller";
@@ -25,6 +26,7 @@ import { PropertyGalleryModal } from "@/features/property-gallery/components/pro
 import { getPropertyByLocationId } from "@/features/property-gallery/data/properties";
 import type { Property } from "@/features/property-gallery/types";
 import { BuildingSceneOverlay } from "@/features/scene/components/building-scene-overlay";
+import { mergeMapPins } from "@/features/map/utils/saved-searches";
 import { applySelection } from "@/features/map/utils/selection";
 import { getGoogleMapsApiKey } from "@/lib/env";
 
@@ -54,11 +56,9 @@ const MODEL_REVEAL_DELAY_MS = 720;
 function SettledPinCallout({
   location,
   onClose,
-  pinAnchorRef,
 }: {
   location: MapLocation;
   onClose: () => void;
-  pinAnchorRef: RefObject<HTMLElement | null>;
 }) {
   const anchorRef = useRef<HTMLDivElement>(null);
   const [placed, setPlaced] = useState(false);
@@ -78,50 +78,39 @@ function SettledPinCallout({
 
     let frame = 0;
     const tick = () => {
-      const sentinel = pinAnchorRef.current;
+      const rect = node.getBoundingClientRect();
       const card = node.querySelector("[data-callout-card]");
       const half = card instanceof HTMLElement ? card.offsetWidth / 2 : 128;
       const cardHeight = card instanceof HTMLElement ? card.offsetHeight : 108;
       const margin = 16;
-      const topLimit = 108;
       const width = window.innerWidth;
-      const height = window.innerHeight;
-      if (sentinel) {
-        const pin = sentinel.getBoundingClientRect();
-        const host =
-          node.offsetParent instanceof HTMLElement
-            ? node.offsetParent.getBoundingClientRect()
-            : { left: 0, top: 0 };
-        const x = pin.left - host.left;
-        const y = pin.top - host.top;
-        node.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        const gap = 80;
-        const roomAbove = pin.top - topLimit;
-        const roomBelow = height - margin - pin.top;
-        node.dataset.side =
-          roomAbove < cardHeight + gap && roomBelow > roomAbove ? "below" : "above";
-        let shift = 0;
-        if (pin.left + half > width - margin) {
-          shift = width - margin - half - pin.left;
-        }
-        if (pin.left + shift - half < margin) {
-          shift = margin + half - pin.left;
-        }
-        node.style.setProperty("--callout-shift", `${shift}px`);
-        node.style.setProperty(
-          "--elbow-origin",
-          shift < 0 ? "right center" : "left center",
-        );
+      const x = rect.left;
+      const y = rect.top;
+      let shift = 0;
+      if (y - 80 - cardHeight < 112) {
+        const beside = half + 18;
+        shift = x + beside + half > width - margin ? -beside : beside;
       }
+      if (x + shift + half > width - margin) {
+        shift = width - margin - half - x;
+      }
+      if (x + shift - half < margin) {
+        shift = margin + half - x;
+      }
+      node.style.setProperty("--callout-shift", `${shift}px`);
+      node.style.setProperty(
+        "--elbow-origin",
+        shift < 0 ? "right center" : "left center",
+      );
       frame = requestAnimationFrame(tick);
     };
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [location.id, pinAnchorRef]);
+  }, [location.id]);
 
   return (
-    <div ref={anchorRef} className="map-pin-anchor map-pin-anchor-overlay">
+    <div ref={anchorRef} className="map-pin-anchor">
       <div className="pin-callout" data-placed={placed ? "true" : "false"}>
         <div className="pin-callout-stem" aria-hidden="true">
           <span className="pin-callout-line" />
@@ -193,7 +182,6 @@ export function InteractiveMap() {
   const [flyingTo, setFlyingTo] = useState<string | null>(null);
   const [galleryProperty, setGalleryProperty] = useState<Property | null>(null);
   const controllerRef = useRef<MapCameraController | null>(null);
-  const pinAnchorRef = useRef<HTMLElement | null>(null);
   const galleryCameraRef = useRef<CameraTarget | null>(null);
   const pendingLocationRef = useRef<{
     location: MapLocation;
@@ -201,7 +189,11 @@ export function InteractiveMap() {
   } | null>(null);
   const revealIdRef = useRef<string | null>(null);
   const revealTimerRef = useRef<number | null>(null);
-  const locations = MAP_PINS;
+  const { places: savedSearches, remember: rememberSearch } = useSavedSearches();
+  const locations = useMemo(
+    () => mergeMapPins(MAP_PINS, savedSearches),
+    [savedSearches],
+  );
   const calloutLocation =
     MAP_PINS.find((pin) => pin.id === calloutId) ?? null;
   const montenegro = useMontenegroSearch(query, !worldSearch, apiKey);
@@ -301,7 +293,20 @@ export function InteractiveMap() {
     setFlyingTo(animated ? location.name : null);
   }
 
+  function focusSearchedPlace(place: MapLocation) {
+    rememberSearch(place);
+    setSelectedId(null);
+    setWorldSelection(place);
+    startFlight(place, false);
+  }
+
   function selectLocation(id: string) {
+    const saved = savedSearches.find((place) => place.id === id);
+    if (saved) {
+      focusSearchedPlace(saved);
+      return;
+    }
+
     setWorldSelection(null);
     const nextId = applySelection(selectedId, { type: "select", id }, locationIds);
     if (nextId !== id) {
@@ -321,10 +326,8 @@ export function InteractiveMap() {
       return;
     }
 
-    setSelectedId(null);
     void resolveMontenegroHit(apiKey, hit).then((place) => {
-      setWorldSelection(place);
-      startFlight(place, false);
+      focusSearchedPlace(place);
     });
   }
 
@@ -334,9 +337,7 @@ export function InteractiveMap() {
       return;
     }
 
-    setSelectedId(null);
-    setWorldSelection(place);
-    startFlight(place, false);
+    focusSearchedPlace(place);
   }
 
   function changeWorldSearch(enabled: boolean) {
@@ -414,7 +415,7 @@ export function InteractiveMap() {
           key={attempt}
           apiKey={apiKey}
           locations={locations}
-          selectedId={selectedId}
+          selectedId={worldSelection?.id ?? selectedId}
           mode={mode}
           onSelect={selectLocation}
           onReady={(controller) => {
@@ -438,8 +439,6 @@ export function InteractiveMap() {
             setPhase("error");
             setFlyingTo(null);
           }}
-          calloutId={calloutLocation?.id ?? null}
-          pinAnchorRef={pinAnchorRef}
         />
       ) : null}
 
@@ -532,18 +531,6 @@ export function InteractiveMap() {
           </div>
         </header>
 
-        {calloutLocation ? (
-          <SettledPinCallout
-            key={calloutLocation.id}
-            location={calloutLocation}
-            pinAnchorRef={pinAnchorRef}
-            onClose={() => {
-              cancelReveal();
-              setCalloutId(null);
-            }}
-          />
-        ) : null}
-
         {flyingTo ? (
           <p
             className="pointer-events-none absolute top-[5.5rem] left-1/2 -translate-x-1/2 rounded-full bg-[#121612]/80 px-3 py-1 text-xs tracking-wide text-[#f5f5f4] sm:top-24"
@@ -551,6 +538,17 @@ export function InteractiveMap() {
           >
             Flying to {flyingTo}
           </p>
+        ) : null}
+
+        {calloutLocation ? (
+          <SettledPinCallout
+            key={calloutLocation.id}
+            location={calloutLocation}
+            onClose={() => {
+              cancelReveal();
+              setCalloutId(null);
+            }}
+          />
         ) : null}
 
         <MapControls

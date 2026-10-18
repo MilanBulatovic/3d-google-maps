@@ -3,15 +3,15 @@
 import { Search } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { Input, Select } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import type { MapLocation } from "@/features/map/types/map-location";
 import { GOOGLE_MAPS_URL } from "@/features/map/utils/attribution";
 
-const CATEGORY_FILTERS = [
-  { value: "Igraonice", label: "Igraonice" },
-  { value: "Nekretnine", label: "Nekretnine" },
-  { value: "Hitne službe", label: "Hitne službe" },
-] as const;
+// const CATEGORY_FILTERS = [
+//   { value: "Igraonice", label: "Igraonice" },
+//   { value: "Nekretnine", label: "Nekretnine" },
+//   { value: "Hitne službe", label: "Hitne službe" },
+// ] as const;
 
 type MapSearchProps = {
   query: string;
@@ -52,8 +52,6 @@ function highlightMatch(name: string, query: string) {
 export function MapSearch({
   query,
   onQueryChange,
-  category,
-  onCategoryChange,
   results,
   selectedId,
   onSelect,
@@ -264,17 +262,18 @@ export function MapSearch({
           className={`rounded-full px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c2410c] ${worldSearch ? "text-[#57534e]" : "bg-[#1c1917] text-[#fffaf3]"}`}
           onClick={() => onWorldSearchChange?.(false)}
         >
-          Mjesta
+          Crna Gora
         </button>
-        <button
+        {/* <button
           type="button"
           aria-pressed={worldSearch}
           className={`rounded-full px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c2410c] ${worldSearch ? "bg-[#1c1917] text-[#fffaf3]" : "text-[#57534e]"}`}
           onClick={() => onWorldSearchChange?.(true)}
         >
           Svijet
-        </button>
+        </button> */}
       </div>
+      {/*
       <Select
         value={category}
         onChange={(event) => onCategoryChange(event.target.value)}
@@ -287,6 +286,7 @@ export function MapSearch({
           </option>
         ))}
       </Select>
+      */}
     </div>
   );
 }

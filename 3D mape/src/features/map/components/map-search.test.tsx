@@ -56,25 +56,26 @@ describe("MapSearch", () => {
     expect(search).toHaveValue(matches[1].name);
   });
 
-  it("offers igraonice and nekretnine", async () => {
-    const user = userEvent.setup();
-    render(<SearchHarness onSelect={vi.fn()} />);
-
-    const category = screen.getByRole("combobox", { name: "Kategorija" });
-    expect(within(category).queryByRole("option", { name: "Sve" })).not.toBeInTheDocument();
-    expect(within(category).getByRole("option", { name: "Igraonice" })).toBeInTheDocument();
-    expect(within(category).getByRole("option", { name: "Nekretnine" })).toBeInTheDocument();
-    expect(within(category).getByRole("option", { name: "Hitne službe" })).toBeInTheDocument();
-
-    await user.selectOptions(category, "Nekretnine");
-    expect(category).toHaveValue("Nekretnine");
-  });
+  // it("offers igraonice and nekretnine", async () => {
+  //   const user = userEvent.setup();
+  //   render(<SearchHarness onSelect={vi.fn()} />);
+  //
+  //   const category = screen.getByRole("combobox", { name: "Kategorija" });
+  //   expect(within(category).queryByRole("option", { name: "Sve" })).not.toBeInTheDocument();
+  //   expect(within(category).getByRole("option", { name: "Igraonice" })).toBeInTheDocument();
+  //   expect(within(category).getByRole("option", { name: "Nekretnine" })).toBeInTheDocument();
+  //   expect(within(category).getByRole("option", { name: "Hitne službe" })).toBeInTheDocument();
+  //
+  //   await user.selectOptions(category, "Nekretnine");
+  //   expect(category).toHaveValue("Nekretnine");
+  // });
 
   it("switches the field to world search", async () => {
     const user = userEvent.setup();
     const onWorldSearchChange = vi.fn();
     render(<SearchHarness onSelect={vi.fn()} onWorldSearchChange={onWorldSearchChange} />);
 
+    expect(screen.queryByRole("combobox", { name: "Kategorija" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Mjesta" })).toHaveAttribute(
       "aria-pressed",
       "true",

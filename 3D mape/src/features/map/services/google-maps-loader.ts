@@ -9,6 +9,9 @@ export type Maps3dRuntime = {
 
 const GOOGLE_MAPS_CHANNEL = "weekly";
 
+/** Serbian in Latin script. `sr` is Cyrillic, which reads like Russian on the pin. */
+export const MAP_LANGUAGE = "sr-Latn";
+
 let inflight: Promise<Maps3dRuntime> | null = null;
 
 function toErrorMessage(error: unknown): string {
@@ -27,7 +30,7 @@ async function loadRuntime(apiKey: string): Promise<Maps3dRuntime> {
   setOptions({
     key: apiKey,
     v: GOOGLE_MAPS_CHANNEL,
-    language: "en",
+    language: MAP_LANGUAGE,
     region: "ME",
   });
 

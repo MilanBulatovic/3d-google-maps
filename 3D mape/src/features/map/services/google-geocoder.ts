@@ -1,6 +1,6 @@
 import { importLibrary } from "@googlemaps/js-api-loader";
 
-import { loadGoogleMaps3d } from "@/features/map/services/google-maps-loader";
+import { loadGoogleMaps3d, MAP_LANGUAGE } from "@/features/map/services/google-maps-loader";
 import type { WorldHit } from "@/features/map/utils/world-view";
 
 const RESULT_LIMIT = 5;
@@ -51,6 +51,7 @@ async function geocode(
   const geocoder = new Geocoder();
   const response = await geocoder.geocode({
     address: query,
+    language: MAP_LANGUAGE,
     ...(country
       ? { componentRestrictions: { country }, region: country.toLowerCase() }
       : {}),

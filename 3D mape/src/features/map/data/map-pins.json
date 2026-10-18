@@ -1,15 +1,5 @@
 [
   {
-    "id": "trg-republike",
-    "name": "Trg Republike",
-    "category": "Lokacija",
-    "description": "Lazni pin na glavnom trgu. Linija i naziv se pojave kad kamera stane iznad njega.",
-    "latitude": 42.4419,
-    "longitude": 19.2623,
-    "address": "Trg Republike, Podgorica",
-    "pinStyle": "plain"
-  },
-  {
     "id": "most-milenijum",
     "name": "Most Milenijum",
     "category": "Lokacija",
