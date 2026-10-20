@@ -19,13 +19,24 @@ describe("coordinate validation", () => {
   });
 
   it("loads plain pins, building pins, and One branches", () => {
-    expect(MAP_PINS.filter((pin) => pin.pinStyle === "plain")).toHaveLength(18);
+    expect(MAP_PINS.filter((pin) => pin.pinStyle === "plain")).toHaveLength(21);
     expect(MAP_PINS.filter((pin) => pin.pinStyle === "model")).toHaveLength(3);
-    expect(MAP_PINS.filter((pin) => pin.category === "Poslovnica")).toHaveLength(18);
+    expect(MAP_PINS.filter((pin) => pin.category === "Poslovnica")).toHaveLength(21);
     expect(new Set(MAP_PINS.map((pin) => pin.id)).size).toBe(MAP_PINS.length);
 
     const centar = MAP_PINS.find((pin) => pin.id === "one-centar");
+    expect(centar?.latitude).toBe(42.44097078798397);
+    expect(centar?.longitude).toBe(19.263518711515655);
     expect(centar?.address).toBe("Trg Republike bb, Podgorica");
+    expect(MAP_PINS.find((pin) => pin.id === "one-tuzi")?.latitude).toBe(
+      42.36570318389984,
+    );
+    expect(MAP_PINS.find((pin) => pin.id === "one-kolasin")?.longitude).toBe(
+      19.52114309986878,
+    );
+    expect(MAP_PINS.find((pin) => pin.id === "one-bijelo-polje-2")?.latitude).toBe(
+      43.05135798705961,
+    );
     expect(centar?.metadata?.Telefon).toBe("1700");
     expect(centar?.metadata?.["E-mail"]).toBe("korisnickiservis@1.me");
     expect(centar?.metadata?.["Pon–pet"]).toBe("08:00–20:00*");

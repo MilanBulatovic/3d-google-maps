@@ -216,7 +216,7 @@ export function LocationInfoCard({
   return (
     <aside
       aria-label={`${location.name} details`}
-      className="map-panel-in pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex h-auto max-h-[46vh] flex-col overflow-hidden rounded-3xl bg-[#fffaf3]/96 text-[#1c1917] shadow-2xl shadow-black/30 ring-1 ring-black/10 sm:inset-x-auto sm:top-24 sm:right-4 sm:bottom-auto sm:max-h-[calc(100dvh-8rem)] sm:w-[22rem]"
+      className="map-panel-in pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex h-auto max-h-[46vh] flex-col overflow-hidden rounded-3xl bg-[#fffaf3]/96 text-[#1c1917] shadow-2xl shadow-black/30 ring-1 ring-black/10 sm:inset-x-auto sm:top-auto sm:right-4 sm:bottom-4 sm:max-h-[calc(100dvh-8rem)] sm:w-[22rem]"
     >
       {showPhoto && location.imageUrl ? (
         <div className="relative shrink-0">
@@ -261,9 +261,6 @@ export function LocationInfoCard({
         {location.address ? (
           <p className="text-sm text-[#292524]">{location.address}</p>
         ) : null}
-        <p className="font-mono text-xs text-[#78716c]">
-          {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
-        </p>
         {source === "openstreetmap" ? (
           <p className="text-xs text-[#57534e]">
             <a

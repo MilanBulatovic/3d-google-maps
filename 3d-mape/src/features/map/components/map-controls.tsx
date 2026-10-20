@@ -15,8 +15,10 @@ type MapControlsProps = {
   hasSelection: boolean;
   mode: SupportedMapMode;
   optionsOpen: boolean;
+  infoModalEnabled: boolean;
   lift: "none" | "peek" | "sheet";
   onShowOverview: () => void;
+  onInfoModalChange: (enabled: boolean) => void;
   onRecenter: () => void;
   onModeChange: (mode: SupportedMapMode) => void;
   onNudgeHeading: (delta: number) => void;
@@ -27,8 +29,10 @@ export function MapControls({
   hasSelection,
   mode,
   optionsOpen,
+  infoModalEnabled,
   lift,
   onShowOverview,
+  onInfoModalChange,
   onRecenter,
   onModeChange,
   onNudgeHeading,
@@ -81,6 +85,14 @@ export function MapControls({
               Hybrid
             </Button>
           </div>
+          <Button
+            variant={infoModalEnabled ? "solid" : "ghost"}
+            aria-pressed={infoModalEnabled}
+            disabled={!ready}
+            onClick={() => onInfoModalChange(!infoModalEnabled)}
+          >
+            Info modal
+          </Button>
           <div className="flex gap-1" role="group" aria-label="Camera heading">
             <Button
               variant="icon"

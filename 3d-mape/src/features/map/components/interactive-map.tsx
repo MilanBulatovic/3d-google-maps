@@ -1,7 +1,7 @@
 "use client";
 
 import { Mountain, Search, SlidersHorizontal, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LocationInfoCard } from "@/features/map/components/location-info-card";
@@ -55,19 +55,19 @@ const MODEL_REVEAL_DELAY_MS = 720;
 
 function SettledPinCallout({
   location,
+  pinAnchorRef,
   onClose,
 }: {
   location: MapLocation;
+  pinAnchorRef: RefObject<HTMLElement | null>;
   onClose: () => void;
 }) {
   const anchorRef = useRef<HTMLDivElement>(null);
   const [placed, setPlaced] = useState(false);
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setPlaced(true));
-    });
-    return () => cancelAnimationFrame(frame);
+    const timer = window.setTimeout(() => setPlaced(true), 900);
+    return () => window.clearTimeout(timer);
   }, [location.id]);
 
   useEffect(() => {
@@ -78,64 +78,105 @@ function SettledPinCallout({
 
     let frame = 0;
     const tick = () => {
+      const sentinel = pinAnchorRef.current;
+      const host = node.offsetParent;
+      if (sentinel && host instanceof HTMLElement) {
+        const pin = sentinel.getBoundingClientRect();
+        const bounds = host.getBoundingClientRect();
+        node.style.left = `${pin.left - bounds.left}px`;
+        node.style.top = `${pin.top - bounds.top}px`;
+        if (node.dataset.tracked !== "true") {
+          node.dataset.tracked = "true";
+          setPlaced(true);
+        }
+      }
+
       const rect = node.getBoundingClientRect();
       const card = node.querySelector("[data-callout-card]");
-      const half = card instanceof HTMLElement ? card.offsetWidth / 2 : 128;
+      const cardWidth = card instanceof HTMLElement ? card.offsetWidth : 256;
       const cardHeight = card instanceof HTMLElement ? card.offsetHeight : 108;
       const margin = 16;
+      const header = 112;
+      const gap = 48;
       const width = window.innerWidth;
+      const height = window.innerHeight;
       const x = rect.left;
       const y = rect.top;
-      let shift = 0;
-      if (y - 80 - cardHeight < 112) {
-        const beside = half + 18;
-        shift = x + beside + half > width - margin ? -beside : beside;
+      const roomRight = width - margin - (x + gap);
+      const roomLeft = x - gap - margin;
+      const placeLeft = roomRight < cardWidth && roomLeft > roomRight;
+      node.dataset.side = placeLeft ? "left" : "right";
+
+      const halfHeight = cardHeight / 2;
+      let lift = 0;
+      if (y - halfHeight < header) {
+        lift = header - (y - halfHeight);
       }
-      if (x + shift + half > width - margin) {
-        shift = width - margin - half - x;
+      if (y + halfHeight + lift > height - margin) {
+        lift = height - margin - (y + halfHeight);
       }
-      if (x + shift - half < margin) {
-        shift = margin + half - x;
-      }
-      node.style.setProperty("--callout-shift", `${shift}px`);
-      node.style.setProperty(
-        "--elbow-origin",
-        shift < 0 ? "right center" : "left center",
-      );
+      node.style.setProperty("--callout-gap", `${gap}px`);
+      node.style.setProperty("--callout-lift", `${lift}px`);
       frame = requestAnimationFrame(tick);
     };
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [location.id]);
+  }, [location.id, pinAnchorRef]);
 
   return (
-    <div ref={anchorRef} className="map-pin-anchor">
+    <div ref={anchorRef} className="map-pin-anchor map-pin-anchor-overlay">
       <div className="pin-callout" data-placed={placed ? "true" : "false"}>
         <div className="pin-callout-stem" aria-hidden="true">
           <span className="pin-callout-line" />
           <span className="pin-callout-elbow" />
         </div>
         <div data-callout-card className="pin-callout-card">
-          <button
-            type="button"
-            onClick={onClose}
-            className="pointer-events-auto absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full text-[#f4efe4] transition hover:bg-white/10"
-            aria-label="Zatvori"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </button>
-          <p className="pr-8 text-xs font-medium tracking-[0.14em] text-[#c8d4c4] uppercase">
-            {location.pinStyle === "model" ? "Zgrada" : "Lokacija"}
-          </p>
-          <h2 className="mt-1 pr-8 text-base font-semibold">{location.name}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-[#d7e0d4]">
-            {location.description}
-          </p>
-        </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="pointer-events-auto absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full text-[#f4efe4] transition hover:bg-white/10"
+              aria-label="Zatvori"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+            <p className="pr-8 text-xs font-medium tracking-[0.14em] text-[#c8d4c4] uppercase">
+              {location.pinStyle === "model" ? "Zgrada" : "Lokacija"}
+            </p>
+            <h2 className="mt-1 pr-8 text-base font-semibold">{location.name}</h2>
+            <p className="mt-1 text-sm leading-relaxed text-[#d7e0d4]">
+              {location.description}
+            </p>
+          </div>
       </div>
     </div>
   );
+}
+
+const MOBILE_QUERY = "(max-width: 639px)";
+
+function useMobileLayout() {
+  const [mobile, setMobile] = useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return false;
+    }
+
+    return window.matchMedia(MOBILE_QUERY).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const media = window.matchMedia(MOBILE_QUERY);
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return mobile;
 }
 
 function prefersReducedMotion(): boolean {
@@ -159,7 +200,9 @@ export function InteractiveMap() {
   const [sceneSession, setSceneSession] = useState(0);
   const [mode, setMode] = useState<SupportedMapMode>("SATELLITE");
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [infoModalEnabled, setInfoModalEnabled] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchPlayed, setSearchPlayed] = useState(false);
   const compactHeader = useCompactHeader();
   const [detailsLift, setDetailsLift] = useState<"none" | "peek" | "sheet">(
     "none",
@@ -182,6 +225,7 @@ export function InteractiveMap() {
   const [flyingTo, setFlyingTo] = useState<string | null>(null);
   const [galleryProperty, setGalleryProperty] = useState<Property | null>(null);
   const controllerRef = useRef<MapCameraController | null>(null);
+  const pinAnchorRef = useRef<HTMLElement | null>(null);
   const galleryCameraRef = useRef<CameraTarget | null>(null);
   const pendingLocationRef = useRef<{
     location: MapLocation;
@@ -202,8 +246,10 @@ export function InteractiveMap() {
   const locationIds = locations.map((location) => location.id);
   const selected = locations.find((location) => location.id === selectedId) ?? null;
   const cardLocation = worldSelection ?? selected;
-  const detailsLocation =
+  const mobile = useMobileLayout();
+  const infoCandidate =
     worldSelection ?? (selected?.pinStyle === "model" ? null : selected);
+  const detailsLocation = infoModalEnabled ? infoCandidate : null;
   function openGallery() {
     if (!cardLocation) {
       return;
@@ -436,6 +482,8 @@ export function InteractiveMap() {
           onUnavailable={() => {
             controllerRef.current = null;
           }}
+          calloutId={calloutId}
+          pinAnchorRef={pinAnchorRef}
           onError={(nextFailure) => {
             setFailure(nextFailure);
             setPhase("error");
@@ -478,7 +526,10 @@ export function InteractiveMap() {
                   aria-label={searchOpen ? "Zatvori pretragu" : "Otvori pretragu"}
                   aria-expanded={searchOpen}
                   aria-controls="map-search"
-                  onClick={() => setSearchOpen((open) => !open)}
+                  onClick={() => {
+                    setSearchPlayed(true);
+                    setSearchOpen((open) => !open);
+                  }}
                 >
                   {searchOpen ? (
                     <X className="size-4" aria-hidden="true" />
@@ -502,6 +553,7 @@ export function InteractiveMap() {
               id="map-search"
               className="map-search-slot sm:contents"
               data-open={searchOpen ? "true" : "false"}
+              data-played={searchPlayed ? "true" : undefined}
               inert={compactHeader && !searchOpen ? true : undefined}
             >
               <div className="map-search-panel sm:contents">
@@ -543,10 +595,13 @@ export function InteractiveMap() {
           </p>
         ) : null}
 
-        {calloutLocation ? (
+        {calloutLocation &&
+        !mobile &&
+        calloutLocation.category !== "Poslovnica" ? (
           <SettledPinCallout
             key={`callout-${calloutLocation.id}`}
             location={calloutLocation}
+            pinAnchorRef={pinAnchorRef}
             onClose={() => {
               cancelReveal();
               setCalloutId(null);
@@ -559,8 +614,10 @@ export function InteractiveMap() {
           hasSelection={cardLocation !== null}
           mode={mode}
           optionsOpen={optionsOpen}
+          infoModalEnabled={infoModalEnabled}
           lift={detailsLocation ? detailsLift : "none"}
           onShowOverview={showOverview}
+          onInfoModalChange={setInfoModalEnabled}
           onRecenter={recenter}
           onModeChange={setMode}
           onNudgeHeading={nudgeHeading}
@@ -573,7 +630,8 @@ export function InteractiveMap() {
             onClose={clearSelection}
             onShowOverview={showOverview}
             onViewProperty={
-              getPropertyByLocationId(detailsLocation.id) || detailsLocation.imageUrl
+              detailsLocation.category === "Zgrada" ||
+              detailsLocation.pinStyle === "model"
                 ? openGallery
                 : undefined
             }

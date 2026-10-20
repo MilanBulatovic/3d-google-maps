@@ -189,6 +189,10 @@ export function MapCanvas({
     const sentinel = document.createElement("div");
     sentinel.className = "map-pin-sentinel";
     popover.append(sentinel);
+    popover.style.background = "transparent";
+    popover.style.border = "none";
+    popover.style.boxShadow = "none";
+    popover.style.padding = "0";
     if (pinAnchorRef) {
       pinAnchorRef.current = sentinel;
     }
