@@ -28,5 +28,62 @@
     "longitude": 19.2634,
     "address": "Stara varoš, Podgorica",
     "pinStyle": "model"
+  },
+  {
+    "id": "one-kamelija",
+    "name": "One Kamelija",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u TC Kamelija u Kotoru.",
+    "latitude": 42.42794286833854,
+    "longitude": 18.769976674716297,
+    "address": "Trg Mata Petrovića, TC Kamelija, Kotor",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Kotor",
+      "Pon–pet": "09:00–22:00*",
+      "Subota": "09:00–22:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-bar",
+    "name": "One Bar",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u Baru.",
+    "latitude": 42.09767843160133,
+    "longitude": 19.096636570012585,
+    "address": "Jovana Stojanovića bb, Bar",
+    "pinStyle": "plain",
+    "dataSource": "openstreetmap",
+    "metadata": {
+      "Grad": "Bar",
+      "Pon–pet": "08:00–20:00*",
+      "Subota": "09:00–20:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
+  },
+  {
+    "id": "one-big-fashion",
+    "name": "One BIG FASHION",
+    "category": "Poslovnica",
+    "description": "Poslovnica One u BIG Fashionu u Podgorici.",
+    "latitude": 42.43815881721658,
+    "longitude": 19.237408958944055,
+    "address": "Bulevar Knjaza Danila bb, Podgorica",
+    "pinStyle": "plain",
+    "metadata": {
+      "Grad": "Podgorica",
+      "Pon–pet": "10:00–22:00*",
+      "Subota": "10:00–22:00*",
+      "Nedjelja": "Provjeriti",
+      "Telefon": "1700",
+      "E-mail": "korisnickiservis@1.me"
+    }
   }
+
 ]
