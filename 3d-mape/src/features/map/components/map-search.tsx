@@ -3,15 +3,15 @@
 import { Search } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { Input } from "@/components/ui/input";
+import { Input, Select } from "@/components/ui/input";
 import type { MapLocation } from "@/features/map/types/map-location";
 import { GOOGLE_MAPS_URL } from "@/features/map/utils/attribution";
 
-// const CATEGORY_FILTERS = [
-//   { value: "Igraonice", label: "Igraonice" },
-//   { value: "Nekretnine", label: "Nekretnine" },
-//   { value: "Hitne službe", label: "Hitne službe" },
-// ] as const;
+const CATEGORY_FILTERS = [
+  { value: "Igraonice", label: "Igraonice" },
+  { value: "Hitne službe", label: "Hitne službe" },
+  { value: "Nekretnine", label: "Nekretnine" },
+] as const;
 
 type MapSearchProps = {
   query: string;
@@ -52,6 +52,8 @@ function highlightMatch(name: string, query: string) {
 export function MapSearch({
   query,
   onQueryChange,
+  category,
+  onCategoryChange,
   results,
   selectedId,
   onSelect,
@@ -273,7 +275,6 @@ export function MapSearch({
             ) : null}
           </div>
         ) : null}
-      {/*
       <Select
         value={category}
         onChange={(event) => onCategoryChange(event.target.value)}
@@ -286,7 +287,6 @@ export function MapSearch({
           </option>
         ))}
       </Select>
-      */}
     </div>
   );
 }

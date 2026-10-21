@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { LOCATIONS } from "@/features/map/data/locations";
 import type { MapLocation } from "@/features/map/types/map-location";
-import { filterLocations } from "@/features/map/utils/filter-locations";
+import {
+  filterLocations,
+  searchPlaces,
+  visibleMapPlaces,
+} from "@/features/map/utils/filter-locations";
 
 describe("filterLocations", () => {
   it("returns every place when the query is empty and the category is all", () => {
@@ -83,5 +87,36 @@ describe("filterLocations", () => {
         (place) => place.id,
       ),
     ).toEqual(["police", "fire"]);
+  });
+
+  it("shows custom file pins together with the selected category", () => {
+    const filePin = {
+      ...LOCATIONS[0],
+      id: "custom-building",
+      name: "Custom zgrada",
+      category: "Zgrada",
+    };
+    const play = { ...LOCATIONS[0], id: "play", category: "Rođendaonica" };
+    const agency = { ...LOCATIONS[0], id: "agency", category: "Nekretnine" };
+
+    expect(
+      visibleMapPlaces([filePin], [play, agency], "Igraonice").map(
+        (place) => place.id,
+      ),
+    ).toEqual(["custom-building", "play"]);
+
+    expect(
+      searchPlaces([filePin], [play, agency], {
+        query: "custom",
+        category: "Nekretnine",
+      }).map((place) => place.id),
+    ).toEqual(["custom-building"]);
+
+    expect(
+      searchPlaces([filePin], [play, agency], {
+        query: "",
+        category: "Nekretnine",
+      }).map((place) => place.id),
+    ).toEqual(["agency", "custom-building"]);
   });
 });

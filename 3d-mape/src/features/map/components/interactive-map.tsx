@@ -14,11 +14,10 @@ import { MapError } from "@/features/map/components/map-error";
 import { MapLoading } from "@/features/map/components/map-loading";
 import { MapSearch } from "@/features/map/components/map-search";
 import { WORLD_SEARCH } from "@/features/map/config/search";
-import { MAP_PINS } from "@/features/map/data/locations";
-import { useMontenegroSearch } from "@/features/map/hooks/use-montenegro-search";
+import { LOCAL_VENUES, MAP_PINS } from "@/features/map/data/locations";
+import { useLiveVenues } from "@/features/map/hooks/use-live-venues";
 import { useSavedSearches } from "@/features/map/hooks/use-saved-searches";
 import { useWorldSearch } from "@/features/map/hooks/use-world-search";
-import { resolveMontenegroHit } from "@/features/map/services/montenegro-search";
 import type { MapCameraController } from "@/features/map/services/map-camera-controller";
 import type { CameraTarget, SupportedMapMode } from "@/features/map/types/map-camera";
 import type { MapLocation } from "@/features/map/types/map-location";
@@ -26,6 +25,7 @@ import { PropertyGalleryModal } from "@/features/property-gallery/components/pro
 import { getPropertyByLocationId } from "@/features/property-gallery/data/properties";
 import type { Property } from "@/features/property-gallery/types";
 import { BuildingSceneOverlay } from "@/features/scene/components/building-scene-overlay";
+import { searchPlaces, visibleMapPlaces } from "@/features/map/utils/filter-locations";
 import { mergeMapPins } from "@/features/map/utils/saved-searches";
 import { applySelection } from "@/features/map/utils/selection";
 import { getGoogleMapsApiKey } from "@/lib/env";
@@ -234,15 +234,26 @@ export function InteractiveMap() {
   const revealIdRef = useRef<string | null>(null);
   const revealTimerRef = useRef<number | null>(null);
   const { places: savedSearches, remember: rememberSearch } = useSavedSearches();
+  const { places: livePlaces } = useLiveVenues();
+  const catalog = livePlaces.length > 0 ? livePlaces : LOCAL_VENUES;
   const locations = useMemo(
-    () => mergeMapPins(MAP_PINS, savedSearches),
-    [savedSearches],
+    () =>
+      mergeMapPins(
+        visibleMapPlaces(MAP_PINS, catalog, category),
+        savedSearches,
+      ),
+    [catalog, category, savedSearches],
+  );
+  const localResults = useMemo(
+    () => searchPlaces(MAP_PINS, catalog, { query, category }),
+    [catalog, category, query],
   );
   const calloutLocation =
     MAP_PINS.find((pin) => pin.id === calloutId) ?? null;
-  const montenegro = useMontenegroSearch(query, !worldSearch, apiKey);
   const world = useWorldSearch(query, worldSearch, apiKey);
-  const search = worldSearch ? world : montenegro;
+  const search = worldSearch
+    ? world
+    : { results: localResults, status: "ready" as const, message: null };
   const locationIds = locations.map((location) => location.id);
   const selected = locations.find((location) => location.id === selectedId) ?? null;
   const cardLocation = worldSelection ?? selected;
@@ -366,17 +377,6 @@ export function InteractiveMap() {
     if (location) {
       startFlight(location, true);
     }
-  }
-
-  function selectMontenegroPlace(id: string) {
-    const hit = montenegro.results.find((item) => item.id === id);
-    if (!hit || !apiKey) {
-      return;
-    }
-
-    void resolveMontenegroHit(apiKey, hit).then((place) => {
-      focusSearchedPlace(place);
-    });
   }
 
   function selectWorldPlace(id: string) {
@@ -572,10 +572,10 @@ export function InteractiveMap() {
                       selectWorldPlace(id);
                       return;
                     }
-                    selectMontenegroPlace(id);
+                    selectLocation(id);
                   }}
                   worldSearch={worldSearch}
-                  montenegroSearch={!worldSearch}
+                  montenegroSearch={false}
                   onWorldSearchChange={changeWorldSearch}
                   worldStatus={search.status}
                   worldMessage={search.message}

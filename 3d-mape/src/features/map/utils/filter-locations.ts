@@ -1,4 +1,5 @@
 import type { MapLocation } from "@/features/map/types/map-location";
+import { mergeMapPins } from "@/features/map/utils/saved-searches";
 
 export type LocationFilter = {
   query: string;
@@ -61,4 +62,25 @@ export function filterLocations(
 
     return haystack.includes(query);
   });
+}
+
+/** Custom file pins stay on the map, plus catalog places in the selected category. */
+export function visibleMapPlaces(
+  filePins: readonly MapLocation[],
+  catalog: readonly MapLocation[],
+  category: string,
+): MapLocation[] {
+  return mergeMapPins(filePins, filterLocations(catalog, { query: "", category }));
+}
+
+/** Search matches the category catalog first, then custom file pins by name. */
+export function searchPlaces(
+  filePins: readonly MapLocation[],
+  catalog: readonly MapLocation[],
+  filter: LocationFilter,
+): MapLocation[] {
+  return mergeMapPins(
+    filterLocations(catalog, filter),
+    filterLocations(filePins, { query: filter.query, category: "all" }),
+  );
 }
