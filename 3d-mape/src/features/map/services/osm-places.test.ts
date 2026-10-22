@@ -15,6 +15,7 @@ describe("placesFromOverpass", () => {
             name: 'Vrtić "Pinokio"',
             amenity: "kindergarten",
             operator: "Artić Pinokio",
+            phone: "+382 20 111 222",
             wikimedia_commons: "File:Pinokio vrtic.jpg",
           },
         },
@@ -90,7 +91,13 @@ describe("placesFromOverpass", () => {
           id: 18,
           lat: 42.44,
           lon: 19.26,
-          tags: { name: "CB Podgorica", amenity: "police" },
+          tags: {
+            name: "CB Podgorica",
+            amenity: "police",
+            phone: "  ",
+            "contact:phone": "+382 20 222 333; +382 67 444 555",
+            mobile: "+382 67 444 555",
+          },
         },
         {
           type: "node",
@@ -142,9 +149,14 @@ describe("placesFromOverpass", () => {
       dataSource: "openstreetmap",
       imageUrl:
         "https://commons.wikimedia.org/wiki/Special:FilePath/Pinokio_vrtic.jpg",
-      metadata: { Izvor: "OpenStreetMap", Vodi: "Artić Pinokio" },
+      metadata: {
+        Izvor: "OpenStreetMap",
+        Vodi: "Artić Pinokio",
+        Telefon: "+382 20 111 222",
+      },
     });
     expect(places[1]?.category).toBe("Dječija radionica");
+    expect(places[1]?.metadata?.Telefon).toBeUndefined();
     expect(places[2]?.category).toBe("Rođendaonica");
     expect(places[2]?.imageUrl).toBeUndefined();
     expect(places[3]).toMatchObject({
@@ -165,6 +177,7 @@ describe("placesFromOverpass", () => {
       "Gorska služba",
     ]);
     expect(places[7]?.description).toBe("CB Podgorica je policijska stanica u Crnoj Gori.");
+    expect(places[7]?.metadata?.Telefon).toBe("+382 20 222 333, +382 67 444 555");
   });
 
   it("returns nothing for a payload without elements", () => {

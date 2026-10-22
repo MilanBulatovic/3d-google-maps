@@ -155,6 +155,19 @@ function imageFor(tags: Record<string, string>): string | undefined {
   );
 }
 
+const PHONE_TAGS = ["phone", "contact:phone", "mobile", "contact:mobile"] as const;
+
+function phoneFor(tags: Record<string, string>): string | undefined {
+  const numbers = PHONE_TAGS.flatMap((key) =>
+    (tags[key] ?? "")
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean),
+  );
+  const unique = [...new Set(numbers)];
+  return unique.length > 0 ? unique.join(", ") : undefined;
+}
+
 function addressFor(tags: Record<string, string>): string | undefined {
   const street = [tags["addr:street"], tags["addr:housenumber"]]
     .filter(Boolean)
@@ -216,6 +229,7 @@ function placeFromElement(element: OverpassElement): MapLocation | null {
   }
 
   const operator = tags.operator?.trim();
+  const phone = phoneFor(tags);
   const parsed = mapLocationSchema.safeParse({
     id: `osm-${type}-${id}`,
     name,
@@ -230,6 +244,7 @@ function placeFromElement(element: OverpassElement): MapLocation | null {
     metadata: {
       Izvor: "OpenStreetMap",
       ...(operator ? { Vodi: operator } : {}),
+      ...(phone ? { Telefon: phone } : {}),
     },
   });
 

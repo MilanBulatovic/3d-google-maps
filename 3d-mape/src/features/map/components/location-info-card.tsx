@@ -59,13 +59,23 @@ function formatMetadataLabel(key: string): string {
 
 function MetadataValue({ label, value }: { label: string; value: string }) {
   if (label === "Telefon") {
+    const numbers = value
+      .split(/[;,]/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+
     return (
-      <a
-        className="underline decoration-[#a8a29e] underline-offset-2"
-        href={`tel:${value.replace(/\s/g, "")}`}
-      >
-        {value}
-      </a>
+      <span className="inline-flex flex-wrap gap-x-2">
+        {numbers.map((number) => (
+          <a
+            key={number}
+            className="underline decoration-[#a8a29e] underline-offset-2"
+            href={`tel:${number.replace(/\s/g, "")}`}
+          >
+            {number}
+          </a>
+        ))}
+      </span>
     );
   }
 
