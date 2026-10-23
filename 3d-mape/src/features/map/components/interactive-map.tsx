@@ -202,7 +202,6 @@ export function InteractiveMap() {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [infoModalEnabled, setInfoModalEnabled] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchPlayed, setSearchPlayed] = useState(false);
   const compactHeader = useCompactHeader();
   const [detailsLift, setDetailsLift] = useState<"none" | "peek" | "sheet">(
     "none",
@@ -526,10 +525,7 @@ export function InteractiveMap() {
                   aria-label={searchOpen ? "Zatvori pretragu" : "Otvori pretragu"}
                   aria-expanded={searchOpen}
                   aria-controls="map-search"
-                  onClick={() => {
-                    setSearchPlayed(true);
-                    setSearchOpen((open) => !open);
-                  }}
+                  onClick={() => setSearchOpen((open) => !open)}
                 >
                   {searchOpen ? (
                     <X className="size-4" aria-hidden="true" />
@@ -553,7 +549,6 @@ export function InteractiveMap() {
               id="map-search"
               className="map-search-slot sm:contents"
               data-open={searchOpen ? "true" : "false"}
-              data-played={searchPlayed ? "true" : undefined}
               inert={compactHeader && !searchOpen ? true : undefined}
             >
               <div className="map-search-panel sm:contents">

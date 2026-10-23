@@ -77,206 +77,10 @@ body {
   }
 }
 
-/* Open and close share one 680ms timeline. Conceal is that timeline reversed, so close cannot take a different path. */
-
-@keyframes map-search-reveal {
-  0% {
-    clip-path: polygon(100% 0%, 100% 0%, 100% 0%, 100% 0%);
-    opacity: 0;
-    filter: blur(12px);
-    transform: rotate(-6deg) scale(0.86);
-  }
-  5% {
-    clip-path: polygon(66.27% -11.24%, 105.62% -11.24%, 105.62% 44.97%, 66.27% 44.97%);
-    opacity: 0.0677;
-    filter: blur(11.41px);
-    transform: rotate(-4.314deg) scale(0.8993);
-  }
-  10% {
-    clip-path: polygon(40.67% -19.78%, 109.89% -19.78%, 109.89% 79.1%, 40.67% 79.1%);
-    opacity: 0.2104;
-    filter: blur(10.23px);
-    transform: rotate(-3.034deg) scale(0.9292);
-  }
-  15% {
-    clip-path: polygon(22.43% -25.86%, 112.93% -25.86%, 112.93% 103.43%, 22.43% 103.43%);
-    opacity: 0.3927;
-    filter: blur(8.56px);
-    transform: rotate(-2.122deg) scale(0.9505);
-  }
-  20% {
-    clip-path: polygon(9.74% -30.09%, 115.04% -30.09%, 115.04% 120.34%, 9.74% 120.34%);
-    opacity: 0.5586;
-    filter: blur(6.8px);
-    transform: rotate(-1.487deg) scale(0.9653);
-  }
-  25% {
-    clip-path: polygon(0.93% -33.02%, 116.51% -33.02%, 116.51% 132.1%, 0.93% 132.1%);
-    opacity: 0.6893;
-    filter: blur(5.23px);
-    transform: rotate(-1.046deg) scale(0.9756);
-  }
-  30% {
-    clip-path: polygon(-5.26% -35.09%, 117.54% -35.09%, 117.54% 140.35%, -5.26% 140.35%);
-    opacity: 0.7878;
-    filter: blur(3.94px);
-    transform: rotate(-0.737deg) scale(0.9828);
-  }
-  35% {
-    clip-path: polygon(-9.64% -36.55%, 118.27% -36.55%, 118.27% 146.19%, -9.64% 146.19%);
-    opacity: 0.8611;
-    filter: blur(2.92px);
-    transform: rotate(-0.518deg) scale(0.9879);
-  }
-  40% {
-    clip-path: polygon(-12.77% -37.59%, 118.8% -37.59%, 118.8% 150.36%, -12.77% 150.36%);
-    opacity: 0.9146;
-    filter: blur(2.11px);
-    transform: rotate(-0.361deg) scale(0.9916);
-  }
-  45% {
-    clip-path: polygon(-15.01% -38.34%, 119.17% -38.34%, 119.17% 153.35%, -15.01% 153.35%);
-    opacity: 0.9526;
-    filter: blur(1.47px);
-    transform: rotate(-0.249deg) scale(0.9942);
-  }
-  50% {
-    clip-path: polygon(-16.61% -38.87%, 119.44% -38.87%, 119.44% 155.48%, -16.61% 155.48%);
-    opacity: 0.978;
-    filter: blur(0.98px);
-    transform: rotate(-0.169deg) scale(0.996);
-  }
-  55% {
-    clip-path: polygon(-17.75% -39.25%, 119.63% -39.25%, 119.63% 157.01%, -17.75% 157.01%);
-    opacity: 0.9931;
-    filter: blur(0.61px);
-    transform: rotate(-0.112deg) scale(0.9974);
-  }
-  60% {
-    clip-path: polygon(-18.56% -39.52%, 119.76% -39.52%, 119.76% 158.07%, -18.56% 158.07%);
-    opacity: 0.9996;
-    filter: blur(0.34px);
-    transform: rotate(-0.072deg) scale(0.9983);
-  }
-  65% {
-    clip-path: polygon(-19.11% -39.7%, 119.85% -39.7%, 119.85% 158.81%, -19.11% 158.81%);
-    opacity: 1;
-    filter: blur(0.16px);
-    transform: rotate(-0.045deg) scale(0.999);
-  }
-  70% {
-    clip-path: polygon(-19.48% -39.83%, 119.91% -39.83%, 119.91% 159.31%, -19.48% 159.31%);
-    opacity: 1;
-    filter: none;
-    transform: rotate(-0.026deg) scale(0.9994);
-  }
-  75% {
-    clip-path: polygon(-19.72% -39.91%, 119.95% -39.91%, 119.95% 159.63%, -19.72% 159.63%);
-    opacity: 1;
-    filter: none;
-    transform: none;
-  }
-  80% {
-    clip-path: polygon(-19.87% -39.96%, 119.98% -39.96%, 119.98% 159.82%, -19.87% 159.82%);
-    opacity: 1;
-    filter: none;
-    transform: none;
-  }
-  85% {
-    clip-path: polygon(-19.95% -39.98%, 119.99% -39.98%, 119.99% 159.93%, -19.95% 159.93%);
-    opacity: 1;
-    filter: none;
-    transform: none;
-  }
-  90% {
-    clip-path: polygon(-19.99% -40%, 120% -40%, 120% 159.98%, -19.99% 159.98%);
-    opacity: 1;
-    filter: none;
-    transform: none;
-  }
-  95% {
-    clip-path: polygon(-20% -40%, 120% -40%, 120% 160%, -20% 160%);
-    opacity: 1;
-    filter: none;
-    transform: none;
-  }
-  100% {
-    clip-path: polygon(-20% -40%, 120% -40%, 120% 160%, -20% 160%);
-    opacity: 1;
-    filter: none;
-    transform: none;
-  }
-}
-
-@keyframes map-search-rows-reveal {
-  0% {
-    grid-template-rows: 0fr;
-  }
-  5% {
-    grid-template-rows: 0.0027fr;
-  }
-  10% {
-    grid-template-rows: 0.0121fr;
-  }
-  15% {
-    grid-template-rows: 0.0307fr;
-  }
-  20% {
-    grid-template-rows: 0.063fr;
-  }
-  25% {
-    grid-template-rows: 0.1177fr;
-  }
-  30% {
-    grid-template-rows: 0.2165fr;
-  }
-  35% {
-    grid-template-rows: 0.416fr;
-  }
-  40% {
-    grid-template-rows: 0.6581fr;
-  }
-  45% {
-    grid-template-rows: 0.7922fr;
-  }
-  50% {
-    grid-template-rows: 0.8694fr;
-  }
-  55% {
-    grid-template-rows: 0.9186fr;
-  }
-  60% {
-    grid-template-rows: 0.9515fr;
-  }
-  65% {
-    grid-template-rows: 0.9735fr;
-  }
-  70% {
-    grid-template-rows: 0.9876fr;
-  }
-  75% {
-    grid-template-rows: 0.9959fr;
-  }
-  80% {
-    grid-template-rows: 0.9996fr;
-  }
-  85% {
-    grid-template-rows: 1fr;
-  }
-  90% {
-    grid-template-rows: 1fr;
-  }
-  95% {
-    grid-template-rows: 1fr;
-  }
-  100% {
-    grid-template-rows: 1fr;
-  }
-}
-
 .map-search-slot {
   display: grid;
   grid-template-rows: 0fr;
+  transition: grid-template-rows 680ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .map-search-slot[data-open="true"] {
@@ -291,32 +95,19 @@ body {
   opacity: 0;
   filter: blur(12px);
   transform: rotate(-6deg) scale(0.86);
+  transition:
+    clip-path 680ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 680ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 680ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .map-search-slot[data-open="true"] .map-search-panel {
   overflow: visible;
   clip-path: polygon(-20% -40%, 120% -40%, 120% 160%, -20% 160%);
   opacity: 1;
-  filter: none;
-  transform: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .map-search-slot[data-open="true"] {
-    animation: map-search-rows-reveal 680ms linear both;
-  }
-
-  .map-search-slot[data-played="true"]:not([data-open="true"]) {
-    animation: map-search-rows-reveal 680ms linear reverse both;
-  }
-
-  .map-search-slot[data-open="true"] .map-search-panel {
-    animation: map-search-reveal 680ms linear both;
-  }
-
-  .map-search-slot[data-played="true"]:not([data-open="true"]) .map-search-panel {
-    animation: map-search-reveal 680ms linear reverse both;
-  }
+  filter: blur(0px);
+  transform: rotate(0deg) scale(1);
 }
 
 .map-nav {
@@ -341,11 +132,9 @@ body {
   .map-search-slot,
   .map-search-panel,
   .map-search-slot[data-open="true"],
-  .map-search-slot[data-open="true"] .map-search-panel,
-  .map-search-slot[data-played="true"]:not([data-open="true"]),
-  .map-search-slot[data-played="true"]:not([data-open="true"]) .map-search-panel {
+  .map-search-slot[data-open="true"] .map-search-panel {
     display: contents;
-    animation: none;
+    transition: none;
   }
 }
 
@@ -511,14 +300,9 @@ body {
 
   .map-search-slot,
   .map-search-slot[data-open="true"],
-  .map-search-slot[data-played="true"],
   .map-search-panel,
-  .map-search-slot[data-open="true"] .map-search-panel,
-  .map-search-slot[data-played="true"] .map-search-panel {
+  .map-search-slot[data-open="true"] .map-search-panel {
     transition: none;
-    animation: none;
-    filter: none;
-    transform: none;
   }
 
   .pin-callout-line,
